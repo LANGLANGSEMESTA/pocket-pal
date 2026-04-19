@@ -1,0 +1,338 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ArrowLeft, CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { CATEGORIES, PAYMENT_METHODS } from "@/lib/format";
+import { toast } from "sonner";
+
+const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
+
+interface Item {
+  id: string;
+  name: string;
+  price: string;
+  assigned: string;
+}
+
+const NewTransaction = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [merchant, setMerchant] = useState("");
+  const [date, setDate] = useState<Date>(new Date());
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("IDR");
+  const [category, setCategory] = useState<string>("makan");
+  const [payment, setPayment] = useState<string>("Tunai");
+  const [notes, setNotes] = useState("");
+  const [itemize, setItemize] = useState(false);
+  const [items, setItems] = useState<Item[]>([
+    { id: crypto.randomUUID(), name: "", price: "", assigned: "" },
+  ]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("home_currency")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.home_currency) setCurrency(data.home_currency);
+      });
+  }, [user]);
+
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
+  const finalAmount = itemize ? itemsTotal : Number(amount) || 0;
+
+  const addItem = () =>
+    setItems([...items, { id: crypto.randomUUID(), name: "", price: "", assigned: "" }]);
+  const removeItem = (id: string) => setItems(items.filter((i) => i.id !== id));
+  const updateItem = (id: string, patch: Partial<Item>) =>
+    setItems(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+
+  const save = async () => {
+    if (!user) return;
+    if (!merchant.trim()) return toast.error("Nama merchant wajib diisi");
+    if (finalAmount <= 0) return toast.error("Nominal harus lebih dari 0");
+    if (itemize && items.some((i) => !i.name.trim() || !Number(i.price))) {
+      return toast.error("Lengkapi semua item dulu");
+    }
+
+    setSaving(true);
+    try {
+      const { data: tx, error: txErr } = await supabase
+        .from("transactions")
+        .insert({
+          user_id: user.id,
+          merchant_name: merchant.trim(),
+          total_amount: finalAmount,
+          original_currency: currency,
+          home_currency: currency,
+          transaction_date: format(date, "yyyy-MM-dd"),
+          category,
+          payment_method: payment,
+          is_itemized: itemize,
+          notes: notes.trim() || null,
+        })
+        .select()
+        .single();
+      if (txErr) throw txErr;
+
+      if (itemize && tx) {
+        const { error: itErr } = await supabase.from("transaction_items").insert(
+          items.map((i) => ({
+            transaction_id: tx.id,
+            item_name: i.name.trim(),
+            price: Number(i.price),
+            assigned_to: i.assigned.trim() || null,
+          }))
+        );
+        if (itErr) throw itErr;
+      }
+
+      toast.success("Transaksi tersimpan! 🎉");
+      navigate("/dashboard", { replace: true });
+    } catch (e: any) {
+      toast.error(e.message || "Gagal menyimpan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="app-shell pb-32">
+      <header className="px-5 pt-8 pb-4 flex items-center gap-3 sticky top-0 bg-background z-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="h-9 w-9 rounded-full bg-card border border-border flex items-center justify-center"
+          aria-label="Kembali"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <h1 className="text-lg font-bold">Catat Transaksi</h1>
+      </header>
+
+      <main className="px-5 space-y-5">
+        {/* Merchant */}
+        <div className="space-y-1.5">
+          <Label htmlFor="merchant">Nama merchant</Label>
+          <Input
+            id="merchant"
+            autoFocus
+            placeholder="contoh: Warteg Bahari"
+            value={merchant}
+            onChange={(e) => setMerchant(e.target.value)}
+            className="h-11"
+          />
+        </div>
+
+        {/* Date + Amount */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Tanggal</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn("h-11 w-full justify-start font-normal", !date && "text-muted-foreground")}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  {format(date, "d MMM yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  disabled={(d) => d > new Date()}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Mata uang</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Amount */}
+        {!itemize && (
+          <div className="space-y-1.5">
+            <Label htmlFor="amount">Nominal</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                {currency === "IDR" ? "Rp" : currency}
+              </span>
+              <Input
+                id="amount"
+                type="number"
+                inputMode="numeric"
+                placeholder="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="h-11 pl-12 text-lg font-semibold"
+              />
+            </div>
+            {amount && Number(amount) > 0 && (
+              <p className="text-xs text-muted-foreground pl-1">
+                = {Number(amount).toLocaleString("id-ID")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Category */}
+        <div className="space-y-1.5">
+          <Label>Kategori</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((c) => (
+                <SelectItem key={c.v} value={c.v}>
+                  <span className="mr-2">{c.e}</span>{c.l}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Payment */}
+        <div className="space-y-1.5">
+          <Label>Metode pembayaran</Label>
+          <div className="flex flex-wrap gap-2">
+            {PAYMENT_METHODS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setPayment(m)}
+                className={cn(
+                  "px-3.5 py-2 rounded-full text-xs font-semibold border transition",
+                  payment === m
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border hover:border-primary/50"
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div className="space-y-1.5">
+          <Label htmlFor="notes">Catatan (opsional)</Label>
+          <Textarea
+            id="notes"
+            placeholder="contoh: makan siang sama Andi"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+          />
+        </div>
+
+        {/* Itemize */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="itemize" className="text-sm font-semibold">Itemize untuk Split Bill</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Bagi tagihan per item</p>
+            </div>
+            <Switch id="itemize" checked={itemize} onCheckedChange={setItemize} />
+          </div>
+
+          {itemize && (
+            <div className="mt-4 space-y-3">
+              {items.map((it, idx) => (
+                <div key={it.id} className="space-y-2 p-3 rounded-lg bg-muted/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Item #{idx + 1}</span>
+                    {items.length > 1 && (
+                      <button
+                        onClick={() => removeItem(it.id)}
+                        className="text-danger"
+                        aria-label="Hapus item"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    placeholder="Nama item"
+                    value={it.name}
+                    onChange={(e) => updateItem(it.id, { name: e.target.value })}
+                    className="h-10 bg-card"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="Harga"
+                      value={it.price}
+                      onChange={(e) => updateItem(it.id, { price: e.target.value })}
+                      className="h-10 bg-card"
+                    />
+                    <Input
+                      placeholder="Untuk siapa"
+                      value={it.assigned}
+                      onChange={(e) => updateItem(it.id, { assigned: e.target.value })}
+                      className="h-10 bg-card"
+                    />
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" className="w-full" onClick={addItem}>
+                <Plus className="h-4 w-4" /> Tambah Item
+              </Button>
+              <div className="flex justify-between pt-2 border-t border-border text-sm">
+                <span className="text-muted-foreground">Total item</span>
+                <span className="font-bold">
+                  {currency === "IDR" ? "Rp" : currency} {itemsTotal.toLocaleString("id-ID")}
+                </span>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Actions */}
+        <div className="flex gap-2.5 pt-2">
+          <Button variant="ghost" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
+            Batal
+          </Button>
+          <Button className="flex-[2] h-12" onClick={save} disabled={saving}>
+            {saving ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default NewTransaction;

@@ -1,46 +1,214 @@
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Plus, Camera, Scissors, Package, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { formatRupiah, getInitials, getCategory } from "@/lib/format";
+
+interface Tx {
+  id: string;
+  merchant_name: string | null;
+  total_amount: number;
+  category: string | null;
+  transaction_date: string | null;
+  original_currency: string | null;
+}
+
+interface Budget {
+  total_limit: number;
+  currency: string | null;
+}
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [homeCurrency, setHomeCurrency] = useState("IDR");
+  const [budget, setBudget] = useState<Budget | null>(null);
+  const [spent, setSpent] = useState(0);
+  const [recent, setRecent] = useState<Tx[]>([]);
+
+  const today = useMemo(() => new Date(), []);
+  const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("username").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setName(data?.username || ""));
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const startOfMonth = new Date(year, month - 1, 1).toISOString().slice(0, 10);
+
+    (async () => {
+      const [{ data: profile }, { data: bud }, { data: txs }] = await Promise.all([
+        supabase.from("profiles").select("username, home_currency").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("budgets")
+          .select("total_limit, currency")
+          .eq("user_id", user.id)
+          .eq("month", month)
+          .eq("year", year)
+          .maybeSingle(),
+        supabase
+          .from("transactions")
+          .select("id, merchant_name, total_amount, category, transaction_date, original_currency")
+          .eq("user_id", user.id)
+          .order("transaction_date", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(5),
+      ]);
+
+      setUsername(profile?.username || "");
+      setHomeCurrency(profile?.home_currency || "IDR");
+      setBudget(bud);
+      setRecent((txs as Tx[]) || []);
+
+      const { data: sumRows } = await supabase
+        .from("transactions")
+        .select("total_amount")
+        .eq("user_id", user.id)
+        .gte("transaction_date", startOfMonth);
+      const total = (sumRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      setSpent(total);
+    })();
   }, [user]);
 
+  const limit = budget?.total_limit || 0;
+  const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+  const tone = pct < 50 ? "ok" : pct <= 80 ? "warn" : "danger";
+  const toneBar =
+    tone === "ok" ? "bg-success" : tone === "warn" ? "bg-warning" : "bg-danger";
+  const toneText =
+    tone === "ok" ? "text-success" : tone === "warn" ? "text-warning" : "text-danger";
+  const message =
+    tone === "ok"
+      ? "Kamu masih aman! Jaga terus ya 💪"
+      : tone === "warn"
+      ? "Udah separuh nih, agak rem dikit ya 👀"
+      : "Budget tipis banget! Mode hemat aktif? 🚨";
+
+  const quickActions = [
+    { to: "/transactions/new", icon: Plus, label: "Catat Transaksi", color: "bg-primary-soft text-primary" },
+    { to: "/scan", icon: Camera, label: "Scan Struk", color: "bg-accent text-accent-foreground" },
+    { to: "/split", icon: Scissors, label: "Split Bill", color: "bg-warning-soft text-warning" },
+    { to: "/stock", icon: Package, label: "Cek Stok", color: "bg-success-soft text-success" },
+  ];
+
   return (
-    <div className="app-shell pb-24">
-      <header className="px-5 pt-10 pb-6">
-        <p className="text-sm text-muted-foreground">Halo,</p>
-        <h1 className="text-2xl font-bold">{name || "Sobat"} 👋</h1>
+    <div className="app-shell pb-28">
+      <header className="px-5 pt-10 pb-5 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold truncate">Hei {username || "Sobat"}! 👋</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+        </div>
+        <Link
+          to="/settings"
+          className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center text-sm shrink-0 uppercase"
+        >
+          {getInitials(username)}
+        </Link>
       </header>
-      <main className="px-5 space-y-4">
-        <Card className="p-5 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0">
-          <p className="text-xs opacity-80">Pengeluaran bulan ini</p>
-          <p className="text-3xl font-bold mt-1">Rp 0</p>
-          <p className="text-xs opacity-80 mt-2">dari budget bulananmu</p>
-        </Card>
+
+      <main className="px-5 space-y-5">
+        {/* Budget */}
         <Card className="p-5">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="font-semibold">Sesi 2 segera hadir</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Fitur transaksi, budget tracker, split bill, dan stok bakal aktif di sesi berikutnya.
-              </p>
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">Budget Bulan Ini</p>
+            {limit > 0 && (
+              <span className={cn("text-xs font-bold", toneText)}>{Math.round(pct)}%</span>
+            )}
           </div>
+
+          {limit > 0 ? (
+            <>
+              <div className="mt-3 h-3 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full transition-all", toneBar)}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-sm mt-3">
+                <span className="font-bold">{formatRupiah(spent, budget?.currency || homeCurrency)}</span>
+                <span className="text-muted-foreground"> dari {formatRupiah(limit, budget?.currency || homeCurrency)} terpakai</span>
+              </p>
+              <p className={cn("text-xs mt-2 font-medium", toneText)}>{message}</p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">
+              Belum ada budget bulan ini. Atur di pengaturan ya!
+            </p>
+          )}
         </Card>
+
+        {/* Quick Actions */}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
+            Aksi Cepat
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map((a) => (
+              <Link key={a.to} to={a.to}>
+                <Card className="p-4 hover:shadow-md transition active:scale-[0.98]">
+                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", a.color)}>
+                    <a.icon className="h-5 w-5" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold">{a.label}</p>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5 px-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Transaksi Terbaru
+            </p>
+            <Link to="/transactions" className="text-xs font-semibold text-primary flex items-center gap-0.5">
+              Lihat semua <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {recent.length === 0 ? (
+            <Card className="p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum ada transaksi. Yuk catat yang pertama! 🎉
+              </p>
+            </Card>
+          ) : (
+            <Card className="divide-y divide-border overflow-hidden">
+              {recent.map((tx) => {
+                const cat = getCategory(tx.category);
+                const date = tx.transaction_date
+                  ? new Date(tx.transaction_date).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                  : "";
+                return (
+                  <div key={tx.id} className="flex items-center gap-3 p-3.5">
+                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center text-lg shrink-0", cat.color)}>
+                      {cat.e}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{tx.merchant_name || "Tanpa nama"}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-md", cat.color)}>
+                          {cat.l}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">{date}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold shrink-0">
+                      {formatRupiah(Number(tx.total_amount), tx.original_currency || homeCurrency)}
+                    </p>
+                  </div>
+                );
+              })}
+            </Card>
+          )}
+        </div>
       </main>
+
       <BottomNav />
     </div>
   );
