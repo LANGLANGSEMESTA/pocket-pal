@@ -31,6 +31,7 @@ type Tx = {
   notes: string | null;
   transaction_date: string;
   is_itemized: boolean | null;
+  source: string | null;
 };
 
 const Transactions = () => {
