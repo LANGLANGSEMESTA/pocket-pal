@@ -129,8 +129,13 @@ const Transactions = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{t.merchant_name || "Tanpa nama"}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <Badge variant="secondary" className="text-[10px] py-0 px-1.5">{c.l}</Badge>
+                        {t.source && t.source !== "app" && (
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/40 text-primary">
+                            🤖 via {t.source === "telegram" ? "Telegram" : t.source === "whatsapp" ? "WA" : "Bot"}
+                          </Badge>
+                        )}
                         <span className="text-xs text-muted-foreground">{relativeDateID(t.transaction_date)}</span>
                       </div>
                     </div>
