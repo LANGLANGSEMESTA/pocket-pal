@@ -10,6 +10,8 @@ import Auth from "./pages/Auth.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NewTransaction from "./pages/NewTransaction.tsx";
+import Transactions from "./pages/Transactions.tsx";
+import SplitBill from "./pages/SplitBill.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -41,10 +43,26 @@ const App = () => (
               }
             />
             <Route
+              path="/transactions"
+              element={
+                <ProtectedRoute>
+                  <Transactions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/transactions/new"
               element={
                 <ProtectedRoute>
                   <NewTransaction />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/split"
+              element={
+                <ProtectedRoute>
+                  <SplitBill />
                 </ProtectedRoute>
               }
             />
