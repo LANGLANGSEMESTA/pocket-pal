@@ -71,6 +71,11 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
+            <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/parent" element={<ProtectedRoute><Parent /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
