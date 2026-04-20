@@ -12,6 +12,11 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NewTransaction from "./pages/NewTransaction.tsx";
 import Transactions from "./pages/Transactions.tsx";
 import SplitBill from "./pages/SplitBill.tsx";
+import Scan from "./pages/Scan.tsx";
+import Stock from "./pages/Stock.tsx";
+import Reports from "./pages/Reports.tsx";
+import Parent from "./pages/Parent.tsx";
+import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
