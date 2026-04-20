@@ -264,6 +264,7 @@ export type Database = {
           notes: string | null
           original_currency: string | null
           payment_method: string | null
+          source: string
           total_amount: number
           transaction_date: string | null
           user_id: string
@@ -280,6 +281,7 @@ export type Database = {
           notes?: string | null
           original_currency?: string | null
           payment_method?: string | null
+          source?: string
           total_amount: number
           transaction_date?: string | null
           user_id: string
@@ -296,6 +298,7 @@ export type Database = {
           notes?: string | null
           original_currency?: string | null
           payment_method?: string | null
+          source?: string
           total_amount?: number
           transaction_date?: string | null
           user_id?: string
