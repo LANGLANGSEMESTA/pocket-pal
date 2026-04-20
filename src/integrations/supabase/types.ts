@@ -61,6 +61,7 @@ export type Database = {
           child_id: string | null
           connected_at: string | null
           created_at: string | null
+          expires_at: string | null
           id: string
           invite_code: string | null
           parent_id: string | null
@@ -70,6 +71,7 @@ export type Database = {
           child_id?: string | null
           connected_at?: string | null
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           invite_code?: string | null
           parent_id?: string | null
@@ -79,6 +81,7 @@ export type Database = {
           child_id?: string | null
           connected_at?: string | null
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           invite_code?: string | null
           parent_id?: string | null
@@ -107,6 +110,8 @@ export type Database = {
           id: string
           onboarding_complete: boolean | null
           preferensi_bahasa: string | null
+          scan_count: number
+          scan_count_month: string | null
           username: string | null
         }
         Insert: {
@@ -115,6 +120,8 @@ export type Database = {
           id: string
           onboarding_complete?: boolean | null
           preferensi_bahasa?: string | null
+          scan_count?: number
+          scan_count_month?: string | null
           username?: string | null
         }
         Update: {
@@ -123,6 +130,8 @@ export type Database = {
           id?: string
           onboarding_complete?: boolean | null
           preferensi_bahasa?: string | null
+          scan_count?: number
+          scan_count_month?: string | null
           username?: string | null
         }
         Relationships: []
