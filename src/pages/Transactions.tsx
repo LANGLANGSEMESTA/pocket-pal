@@ -49,7 +49,7 @@ const Transactions = () => {
     setLoading(true);
     const { data } = await supabase
       .from("transactions")
-      .select("id,merchant_name,total_amount,category,payment_method,notes,transaction_date,is_itemized")
+      .select("id,merchant_name,total_amount,category,payment_method,notes,transaction_date,is_itemized,source")
       .eq("user_id", user.id)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false });
