@@ -21,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, PAYMENT_METHODS } from "@/lib/format";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
@@ -73,7 +74,6 @@ const NewTransaction = () => {
 
   const save = async () => {
     if (!isReady) return toast.error("Sesi belum siap, coba lagi sebentar");
-    if (!user) return toast.error("Kamu harus login dulu");
     if (!merchant.trim()) return toast.error("Nama merchant wajib diisi");
     if (finalAmount <= 0) return toast.error("Nominal harus lebih dari 0");
     if (itemize && items.some((i) => !i.name.trim() || !Number(i.price))) {
@@ -82,10 +82,12 @@ const NewTransaction = () => {
 
     setSaving(true);
     try {
+      const currentUser = await requireAuthenticatedUser();
+
       const { data: tx, error: txErr } = await supabase
         .from("transactions")
         .insert({
-          user_id: user.id,
+          user_id: currentUser.id,
           merchant_name: merchant.trim(),
           total_amount: finalAmount,
           original_currency: currency,

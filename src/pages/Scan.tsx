@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES, formatRupiah, PAYMENT_METHODS } from "@/lib/format";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -105,14 +106,14 @@ const Scan = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
     if (!amount || Number(amount) <= 0) {
       toast.error("Total harus diisi");
       return;
     }
     setSaving(true);
+    const currentUser = await requireAuthenticatedUser();
     const { error } = await supabase.from("transactions").insert({
-      user_id: user.id,
+      user_id: currentUser.id,
       merchant_name: merchant || "Struk",
       total_amount: Number(amount),
       transaction_date: date,
