@@ -38,3 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => useContext(Ctx);
+
+export const useAuthReady = () => {
+  const { user, session, loading } = useAuth();
+  return { user, session, isReady: !loading };
+};
