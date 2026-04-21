@@ -1,5 +1,5 @@
 import { BottomNav } from "@/components/BottomNav";
-import { useAuth, useAuthReady } from "@/hooks/useAuth";
+import { useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Plus, Camera, Scissors, Package, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatRupiah, getInitials, getCategory } from "@/lib/format";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 interface Tx {
   id: string;
@@ -23,7 +24,6 @@ interface Budget {
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const { isReady } = useAuthReady();
   const [username, setUsername] = useState("");
   const [homeCurrency, setHomeCurrency] = useState("IDR");
@@ -35,26 +35,37 @@ const Dashboard = () => {
   const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
   useEffect(() => {
-    if (!isReady || !user) return;
+    if (!isReady) return;
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
     const startOfMonth = new Date(year, month - 1, 1).toISOString().slice(0, 10);
 
     (async () => {
+      const currentUser = await getAuthenticatedUser();
+
+      if (!currentUser) {
+        setUsername("");
+        setHomeCurrency("IDR");
+        setBudget(null);
+        setRecent([]);
+        setSpent(0);
+        return;
+      }
+
       const [{ data: profile }, { data: bud }, { data: txs }] = await Promise.all([
-        supabase.from("profiles").select("username, home_currency").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("username, home_currency").eq("id", currentUser.id).maybeSingle(),
         supabase
           .from("budgets")
           .select("total_limit, currency")
-          .eq("user_id", user.id)
+          .eq("user_id", currentUser.id)
           .eq("month", month)
           .eq("year", year)
           .maybeSingle(),
         supabase
           .from("transactions")
           .select("id, merchant_name, total_amount, category, transaction_date, original_currency")
-          .eq("user_id", user.id)
+          .eq("user_id", currentUser.id)
           .order("transaction_date", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(5),
@@ -68,12 +79,12 @@ const Dashboard = () => {
       const { data: sumRows } = await supabase
         .from("transactions")
         .select("total_amount")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .gte("transaction_date", startOfMonth);
       const total = (sumRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       setSpent(total);
     })();
-  }, [user, isReady]);
+  }, [isReady]);
 
   const limit = budget?.total_limit || 0;
   const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;

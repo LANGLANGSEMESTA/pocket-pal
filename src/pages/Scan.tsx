@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES, formatRupiah, PAYMENT_METHODS } from "@/lib/format";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -105,28 +106,34 @@ const Scan = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
     if (!amount || Number(amount) <= 0) {
       toast.error("Total harus diisi");
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      merchant_name: merchant || "Struk",
-      total_amount: Number(amount),
-      transaction_date: date,
-      category,
-      payment_method: payment,
-      notes: notes || null,
-    });
-    setSaving(false);
-    if (error) {
+    try {
+      const currentUser = await requireAuthenticatedUser();
+      const { error } = await supabase.from("transactions").insert({
+        user_id: currentUser.id,
+        merchant_name: merchant || "Struk",
+        total_amount: Number(amount),
+        transaction_date: date,
+        category,
+        payment_method: payment,
+        notes: notes || null,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Tersimpan dari struk! 🎉");
+      navigate("/dashboard");
+    } catch {
       toast.error("Gagal menyimpan");
-      return;
+    } finally {
+      setSaving(false);
     }
-    toast.success("Tersimpan dari struk! 🎉");
-    navigate("/dashboard");
   };
 
   const conf = result?.confidence_score ?? 0;
