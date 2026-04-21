@@ -1,5 +1,5 @@
 import { BottomNav } from "@/components/BottomNav";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,7 @@ interface Budget {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { isReady } = useAuthReady();
   const [username, setUsername] = useState("");
   const [homeCurrency, setHomeCurrency] = useState("IDR");
   const [budget, setBudget] = useState<Budget | null>(null);
@@ -34,7 +35,7 @@ const Dashboard = () => {
   const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
   useEffect(() => {
-    if (!user) return;
+    if (!isReady || !user) return;
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
@@ -72,7 +73,7 @@ const Dashboard = () => {
       const total = (sumRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       setSpent(total);
     })();
-  }, [user]);
+  }, [user, isReady]);
 
   const limit = budget?.total_limit || 0;
   const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
