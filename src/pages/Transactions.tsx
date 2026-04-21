@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, useAuthReady } from "@/hooks/useAuth";
+import { useAuthReady } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
 import { CATEGORIES, formatRupiah, getCategory } from "@/lib/format";
 import { relativeDateID } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { getAuthenticatedUser, requireAuthenticatedUser } from "@/lib/auth";
 import { toast } from "sonner";
 
 type Tx = {
@@ -35,7 +36,6 @@ type Tx = {
 };
 
 const Transactions = () => {
-  const { user } = useAuth();
   const { isReady } = useAuthReady();
   const navigate = useNavigate();
   const [txs, setTxs] = useState<Tx[]>([]);
@@ -46,12 +46,20 @@ const Transactions = () => {
   const [toDelete, setToDelete] = useState<string | null>(null);
 
   const load = async () => {
-    if (!isReady || !user) return;
+    if (!isReady) return;
     setLoading(true);
+    const currentUser = await getAuthenticatedUser();
+
+    if (!currentUser) {
+      setTxs([]);
+      setLoading(false);
+      return;
+    }
+
     const { data } = await supabase
       .from("transactions")
       .select("id,merchant_name,total_amount,category,payment_method,notes,transaction_date,is_itemized,source")
-      .eq("user_id", user.id)
+      .eq("user_id", currentUser.id)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false });
     setTxs((data || []) as Tx[]);
@@ -60,7 +68,7 @@ const Transactions = () => {
 
   useEffect(() => {
     load();
-  }, [user, isReady]);
+  }, [isReady]);
 
   const filtered = useMemo(() => {
     return txs.filter((t) => {
@@ -74,12 +82,13 @@ const Transactions = () => {
     if (!toDelete) return;
     const id = toDelete;
     setToDelete(null);
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const currentUser = await requireAuthenticatedUser();
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", currentUser.id);
     if (error) {
       toast.error("Gagal menghapus transaksi");
       return;
     }
-    setTxs((p) => p.filter((t) => t.id !== id));
+    await load();
     toast.success("Transaksi dihapus");
   };
 
