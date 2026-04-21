@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ArrowLeft, CalendarIcon, Plus, Trash2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useAuthReady } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ interface Item {
 const NewTransaction = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isReady } = useAuthReady();
 
   const [merchant, setMerchant] = useState("");
   const [date, setDate] = useState<Date>(new Date());
@@ -71,7 +72,8 @@ const NewTransaction = () => {
     setItems(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
 
   const save = async () => {
-    if (!user) return;
+    if (!isReady) return toast.error("Sesi belum siap, coba lagi sebentar");
+    if (!user) return toast.error("Kamu harus login dulu");
     if (!merchant.trim()) return toast.error("Nama merchant wajib diisi");
     if (finalAmount <= 0) return toast.error("Nominal harus lebih dari 0");
     if (itemize && items.some((i) => !i.name.trim() || !Number(i.price))) {

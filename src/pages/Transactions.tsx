@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useAuthReady } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ type Tx = {
 
 const Transactions = () => {
   const { user } = useAuth();
+  const { isReady } = useAuthReady();
   const navigate = useNavigate();
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ const Transactions = () => {
   const [toDelete, setToDelete] = useState<string | null>(null);
 
   const load = async () => {
-    if (!user) return;
+    if (!isReady || !user) return;
     setLoading(true);
     const { data } = await supabase
       .from("transactions")
@@ -59,7 +60,7 @@ const Transactions = () => {
 
   useEffect(() => {
     load();
-  }, [user]);
+  }, [user, isReady]);
 
   const filtered = useMemo(() => {
     return txs.filter((t) => {
