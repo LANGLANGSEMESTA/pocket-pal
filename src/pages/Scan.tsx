@@ -111,23 +111,29 @@ const Scan = () => {
       return;
     }
     setSaving(true);
-    const currentUser = await requireAuthenticatedUser();
-    const { error } = await supabase.from("transactions").insert({
-      user_id: currentUser.id,
-      merchant_name: merchant || "Struk",
-      total_amount: Number(amount),
-      transaction_date: date,
-      category,
-      payment_method: payment,
-      notes: notes || null,
-    });
-    setSaving(false);
-    if (error) {
+    try {
+      const currentUser = await requireAuthenticatedUser();
+      const { error } = await supabase.from("transactions").insert({
+        user_id: currentUser.id,
+        merchant_name: merchant || "Struk",
+        total_amount: Number(amount),
+        transaction_date: date,
+        category,
+        payment_method: payment,
+        notes: notes || null,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Tersimpan dari struk! 🎉");
+      navigate("/dashboard");
+    } catch {
       toast.error("Gagal menyimpan");
-      return;
+    } finally {
+      setSaving(false);
     }
-    toast.success("Tersimpan dari struk! 🎉");
-    navigate("/dashboard");
   };
 
   const conf = result?.confidence_score ?? 0;

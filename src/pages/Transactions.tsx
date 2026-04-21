@@ -82,14 +82,19 @@ const Transactions = () => {
     if (!toDelete) return;
     const id = toDelete;
     setToDelete(null);
-    const currentUser = await requireAuthenticatedUser();
-    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", currentUser.id);
-    if (error) {
+    try {
+      const currentUser = await requireAuthenticatedUser();
+      const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", currentUser.id);
+
+      if (error) {
+        throw error;
+      }
+
+      await load();
+      toast.success("Transaksi dihapus");
+    } catch {
       toast.error("Gagal menghapus transaksi");
-      return;
     }
-    await load();
-    toast.success("Transaksi dihapus");
   };
 
   return (
