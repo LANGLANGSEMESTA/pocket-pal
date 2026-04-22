@@ -1,10 +1,11 @@
-import { Home, ClipboardList, BarChart3, Settings, Plus } from "lucide-react";
+import { Home, ClipboardList, BarChart3, Settings, Plus, Scissors } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/dashboard", label: "Beranda", icon: Home },
   { to: "/transactions", label: "Transaksi", icon: ClipboardList },
+  { to: "/split", label: "Split", icon: Scissors },
   { to: "/reports", label: "Laporan", icon: BarChart3 },
   { to: "/settings", label: "Pengaturan", icon: Settings },
 ];
@@ -31,7 +32,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border z-40">
-      <div className="grid grid-cols-5 items-end relative">
+      <div className="grid grid-cols-6 items-end relative">
         <Tab {...tabs[0]} />
         <Tab {...tabs[1]} />
         <div className="flex justify-center">
@@ -45,6 +46,7 @@ export const BottomNav = () => {
         </div>
         <Tab {...tabs[2]} />
         <Tab {...tabs[3]} />
+        <Tab {...tabs[4]} />
       </div>
       <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
