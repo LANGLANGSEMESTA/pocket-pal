@@ -225,7 +225,7 @@ const SplitBill = () => {
   const buildMessage = (name: string, amount: number) => {
     const pay = getPaymentInfo();
     const payBlock = pay ? formatPaymentBlock(pay) : "[isi info pembayaran di Pengaturan]";
-    return `Hei ${name}! Tagihan ${merchantName} tadi:\n\nBagianmu: ${formatRupiah(amount)}\n\nTransfer ke:\n${payBlock}\n\nKonfirmasi ke aku kalau udah ya! ✓`;
+    return `Hei ${name}! Tagihan ${merchantName}:\n\nBagianmu: ${formatRupiah(amount)}\n\nTransfer ke:\n${payBlock}\n\nKonfirmasi ke aku kalau udah ya! ✓`;
   };
 
   const sendWA = (phone: string | undefined, msg: string) => {
