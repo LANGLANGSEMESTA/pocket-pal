@@ -35,6 +35,7 @@ export const BottomNav = () => {
       <div className="grid grid-cols-6 items-end relative">
         <Tab {...tabs[0]} />
         <Tab {...tabs[1]} />
+        <Tab {...tabs[2]} />
         <div className="flex justify-center">
           <button
             onClick={() => navigate("/transactions/new")}
@@ -44,7 +45,6 @@ export const BottomNav = () => {
             <Plus className="h-6 w-6" strokeWidth={2.5} />
           </button>
         </div>
-        <Tab {...tabs[2]} />
         <Tab {...tabs[3]} />
         <Tab {...tabs[4]} />
       </div>
