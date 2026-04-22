@@ -225,69 +225,6 @@ const NewTransaction = () => {
           />
         </div>
 
-        {/* Itemize */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="itemize" className="text-sm font-semibold">Itemize untuk Split Bill</Label>
-              <p className="text-xs text-muted-foreground mt-0.5">Bagi tagihan per item</p>
-            </div>
-            <Switch id="itemize" checked={itemize} onCheckedChange={setItemize} />
-          </div>
-
-          {itemize && (
-            <div className="mt-4 space-y-3">
-              {items.map((it, idx) => (
-                <div key={it.id} className="space-y-2 p-3 rounded-lg bg-muted/40">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Item #{idx + 1}</span>
-                    {items.length > 1 && (
-                      <button
-                        onClick={() => removeItem(it.id)}
-                        className="text-danger"
-                        aria-label="Hapus item"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    placeholder="Nama item"
-                    value={it.name}
-                    onChange={(e) => updateItem(it.id, { name: e.target.value })}
-                    className="h-10 bg-card"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="Harga"
-                      value={it.price}
-                      onChange={(e) => updateItem(it.id, { price: e.target.value })}
-                      className="h-10 bg-card"
-                    />
-                    <Input
-                      placeholder="Untuk siapa"
-                      value={it.assigned}
-                      onChange={(e) => updateItem(it.id, { assigned: e.target.value })}
-                      className="h-10 bg-card"
-                    />
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" className="w-full" onClick={addItem}>
-                <Plus className="h-4 w-4" /> Tambah Item
-              </Button>
-              <div className="flex justify-between pt-2 border-t border-border text-sm">
-                <span className="text-muted-foreground">Total item</span>
-                <span className="font-bold">
-                  {currency === "IDR" ? "Rp" : currency} {itemsTotal.toLocaleString("id-ID")}
-                </span>
-              </div>
-            </div>
-          )}
-        </Card>
-
         {/* Actions */}
         <div className="flex gap-2.5 pt-2">
           <Button variant="ghost" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
