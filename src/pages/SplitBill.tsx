@@ -434,14 +434,28 @@ const SplitBill = () => {
 
               {/* Mode-specific UI */}
               {splitMode === "rata" && (
-                <Card className="bg-primary-soft border-primary/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-xs text-muted-foreground">Masing-masing bayar</div>
-                    <div className="text-2xl font-bold text-primary mt-1">
-                      {formatRupiah(perPersonAmounts[0] || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="space-y-3">
+                  <Card className="bg-primary-soft border-primary/20">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-xs text-muted-foreground">
+                        {formatRupiah(totalAmount)} ÷ {people.length} orang
+                      </div>
+                      <div className="text-3xl font-bold text-primary mt-1">
+                        {formatRupiah(perPersonAmounts[0] || 0)}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">per orang</div>
+                    </CardContent>
+                  </Card>
+                  <div className="space-y-1.5">
+                    <Label>Tagihan per orang</Label>
+                    {people.map((p, pi) => (
+                      <div key={pi} className="flex justify-between text-sm bg-card border border-border rounded-lg px-3 py-2">
+                        <span>{p.name || `Orang ${pi + 1}`}</span>
+                        <span className="font-semibold">{formatRupiah(perPersonAmounts[pi] || 0)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {splitMode === "item" && (
