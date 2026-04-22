@@ -153,30 +153,28 @@ const NewTransaction = () => {
         </div>
 
         {/* Amount */}
-        {!itemize && (
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">Nominal</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                {currency === "IDR" ? "Rp" : currency}
-              </span>
-              <Input
-                id="amount"
-                type="number"
-                inputMode="numeric"
-                placeholder="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="h-11 pl-12 text-lg font-semibold"
-              />
-            </div>
-            {amount && Number(amount) > 0 && (
-              <p className="text-xs text-muted-foreground pl-1">
-                = {Number(amount).toLocaleString("id-ID")}
-              </p>
-            )}
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Nominal</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              {currency === "IDR" ? "Rp" : currency}
+            </span>
+            <Input
+              id="amount"
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="h-11 pl-12 text-lg font-semibold"
+            />
           </div>
-        )}
+          {amount && Number(amount) > 0 && (
+            <p className="text-xs text-muted-foreground pl-1">
+              = {Number(amount).toLocaleString("id-ID")}
+            </p>
+          )}
+        </div>
 
         {/* Category */}
         <div className="space-y-1.5">
