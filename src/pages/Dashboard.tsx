@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, Camera, Scissors, Package, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { formatRupiah, getInitials, getCategory } from "@/lib/format";
+import { formatRupiah, getCategory } from "@/lib/format";
 import { getAuthenticatedUser } from "@/lib/auth";
 
 interface Tx {
@@ -109,17 +109,9 @@ const Dashboard = () => {
 
   return (
     <div className="app-shell pb-28">
-      <header className="px-5 pt-10 pb-5 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold truncate">Hei {username || "Sobat"}! 👋</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
-        </div>
-        <Link
-          to="/settings"
-          className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center text-sm shrink-0 uppercase"
-        >
-          {getInitials(username)}
-        </Link>
+      <header className="px-5 pt-10 pb-5">
+        <h1 className="text-xl font-bold truncate">Hei {username || "Sobat"}! 👋</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
       </header>
 
       <main className="px-5 space-y-5">
