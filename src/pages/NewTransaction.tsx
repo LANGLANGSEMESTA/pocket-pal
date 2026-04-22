@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { useAuth, useAuthReady } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -26,13 +24,6 @@ import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
 
-interface Item {
-  id: string;
-  name: string;
-  price: string;
-  assigned: string;
-}
-
 const NewTransaction = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -45,10 +36,6 @@ const NewTransaction = () => {
   const [category, setCategory] = useState<string>("makan");
   const [payment, setPayment] = useState<string>("Tunai");
   const [notes, setNotes] = useState("");
-  const [itemize, setItemize] = useState(false);
-  const [items, setItems] = useState<Item[]>([
-    { id: crypto.randomUUID(), name: "", price: "", assigned: "" },
-  ]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -63,22 +50,12 @@ const NewTransaction = () => {
       });
   }, [user]);
 
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
-  const finalAmount = itemize ? itemsTotal : Number(amount) || 0;
-
-  const addItem = () =>
-    setItems([...items, { id: crypto.randomUUID(), name: "", price: "", assigned: "" }]);
-  const removeItem = (id: string) => setItems(items.filter((i) => i.id !== id));
-  const updateItem = (id: string, patch: Partial<Item>) =>
-    setItems(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  const finalAmount = Number(amount) || 0;
 
   const save = async () => {
     if (!isReady) return toast.error("Sesi belum siap, coba lagi sebentar");
     if (!merchant.trim()) return toast.error("Nama merchant wajib diisi");
     if (finalAmount <= 0) return toast.error("Nominal harus lebih dari 0");
-    if (itemize && items.some((i) => !i.name.trim() || !Number(i.price))) {
-      return toast.error("Lengkapi semua item dulu");
-    }
 
     setSaving(true);
     try {
@@ -95,24 +72,12 @@ const NewTransaction = () => {
           transaction_date: format(date, "yyyy-MM-dd"),
           category,
           payment_method: payment,
-          is_itemized: itemize,
+          is_itemized: false,
           notes: notes.trim() || null,
         })
         .select()
         .single();
       if (txErr) throw txErr;
-
-      if (itemize && tx) {
-        const { error: itErr } = await supabase.from("transaction_items").insert(
-          items.map((i) => ({
-            transaction_id: tx.id,
-            item_name: i.name.trim(),
-            price: Number(i.price),
-            assigned_to: i.assigned.trim() || null,
-          }))
-        );
-        if (itErr) throw itErr;
-      }
 
       toast.success("Transaksi tersimpan! 🎉");
       navigate("/dashboard", { replace: true });
@@ -188,30 +153,28 @@ const NewTransaction = () => {
         </div>
 
         {/* Amount */}
-        {!itemize && (
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">Nominal</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                {currency === "IDR" ? "Rp" : currency}
-              </span>
-              <Input
-                id="amount"
-                type="number"
-                inputMode="numeric"
-                placeholder="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="h-11 pl-12 text-lg font-semibold"
-              />
-            </div>
-            {amount && Number(amount) > 0 && (
-              <p className="text-xs text-muted-foreground pl-1">
-                = {Number(amount).toLocaleString("id-ID")}
-              </p>
-            )}
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Nominal</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              {currency === "IDR" ? "Rp" : currency}
+            </span>
+            <Input
+              id="amount"
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="h-11 pl-12 text-lg font-semibold"
+            />
           </div>
-        )}
+          {amount && Number(amount) > 0 && (
+            <p className="text-xs text-muted-foreground pl-1">
+              = {Number(amount).toLocaleString("id-ID")}
+            </p>
+          )}
+        </div>
 
         {/* Category */}
         <div className="space-y-1.5">
@@ -261,69 +224,6 @@ const NewTransaction = () => {
             rows={2}
           />
         </div>
-
-        {/* Itemize */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="itemize" className="text-sm font-semibold">Itemize untuk Split Bill</Label>
-              <p className="text-xs text-muted-foreground mt-0.5">Bagi tagihan per item</p>
-            </div>
-            <Switch id="itemize" checked={itemize} onCheckedChange={setItemize} />
-          </div>
-
-          {itemize && (
-            <div className="mt-4 space-y-3">
-              {items.map((it, idx) => (
-                <div key={it.id} className="space-y-2 p-3 rounded-lg bg-muted/40">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Item #{idx + 1}</span>
-                    {items.length > 1 && (
-                      <button
-                        onClick={() => removeItem(it.id)}
-                        className="text-danger"
-                        aria-label="Hapus item"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    placeholder="Nama item"
-                    value={it.name}
-                    onChange={(e) => updateItem(it.id, { name: e.target.value })}
-                    className="h-10 bg-card"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="Harga"
-                      value={it.price}
-                      onChange={(e) => updateItem(it.id, { price: e.target.value })}
-                      className="h-10 bg-card"
-                    />
-                    <Input
-                      placeholder="Untuk siapa"
-                      value={it.assigned}
-                      onChange={(e) => updateItem(it.id, { assigned: e.target.value })}
-                      className="h-10 bg-card"
-                    />
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" className="w-full" onClick={addItem}>
-                <Plus className="h-4 w-4" /> Tambah Item
-              </Button>
-              <div className="flex justify-between pt-2 border-t border-border text-sm">
-                <span className="text-muted-foreground">Total item</span>
-                <span className="font-bold">
-                  {currency === "IDR" ? "Rp" : currency} {itemsTotal.toLocaleString("id-ID")}
-                </span>
-              </div>
-            </div>
-          )}
-        </Card>
 
         {/* Actions */}
         <div className="flex gap-2.5 pt-2">
