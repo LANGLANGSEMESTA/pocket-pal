@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { useAuth, useAuthReady } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -26,13 +24,6 @@ import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
 
-interface Item {
-  id: string;
-  name: string;
-  price: string;
-  assigned: string;
-}
-
 const NewTransaction = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -45,10 +36,6 @@ const NewTransaction = () => {
   const [category, setCategory] = useState<string>("makan");
   const [payment, setPayment] = useState<string>("Tunai");
   const [notes, setNotes] = useState("");
-  const [itemize, setItemize] = useState(false);
-  const [items, setItems] = useState<Item[]>([
-    { id: crypto.randomUUID(), name: "", price: "", assigned: "" },
-  ]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
