@@ -50,22 +50,12 @@ const NewTransaction = () => {
       });
   }, [user]);
 
-  const itemsTotal = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
-  const finalAmount = itemize ? itemsTotal : Number(amount) || 0;
-
-  const addItem = () =>
-    setItems([...items, { id: crypto.randomUUID(), name: "", price: "", assigned: "" }]);
-  const removeItem = (id: string) => setItems(items.filter((i) => i.id !== id));
-  const updateItem = (id: string, patch: Partial<Item>) =>
-    setItems(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  const finalAmount = Number(amount) || 0;
 
   const save = async () => {
     if (!isReady) return toast.error("Sesi belum siap, coba lagi sebentar");
     if (!merchant.trim()) return toast.error("Nama merchant wajib diisi");
     if (finalAmount <= 0) return toast.error("Nominal harus lebih dari 0");
-    if (itemize && items.some((i) => !i.name.trim() || !Number(i.price))) {
-      return toast.error("Lengkapi semua item dulu");
-    }
 
     setSaving(true);
     try {
@@ -82,24 +72,12 @@ const NewTransaction = () => {
           transaction_date: format(date, "yyyy-MM-dd"),
           category,
           payment_method: payment,
-          is_itemized: itemize,
+          is_itemized: false,
           notes: notes.trim() || null,
         })
         .select()
         .single();
       if (txErr) throw txErr;
-
-      if (itemize && tx) {
-        const { error: itErr } = await supabase.from("transaction_items").insert(
-          items.map((i) => ({
-            transaction_id: tx.id,
-            item_name: i.name.trim(),
-            price: Number(i.price),
-            assigned_to: i.assigned.trim() || null,
-          }))
-        );
-        if (itErr) throw itErr;
-      }
 
       toast.success("Transaksi tersimpan! 🎉");
       navigate("/dashboard", { replace: true });
