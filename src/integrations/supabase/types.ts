@@ -112,6 +112,7 @@ export type Database = {
           preferensi_bahasa: string | null
           scan_count: number
           scan_count_month: string | null
+          ui_vibe: string | null
           username: string | null
         }
         Insert: {
@@ -122,6 +123,7 @@ export type Database = {
           preferensi_bahasa?: string | null
           scan_count?: number
           scan_count_month?: string | null
+          ui_vibe?: string | null
           username?: string | null
         }
         Update: {
@@ -132,6 +134,7 @@ export type Database = {
           preferensi_bahasa?: string | null
           scan_count?: number
           scan_count_month?: string | null
+          ui_vibe?: string | null
           username?: string | null
         }
         Relationships: []
@@ -227,6 +230,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_paid: boolean | null
+          member_name: string
+          member_phone: string | null
+          paid_at: string | null
+          share_amount: number
+          subscription_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_paid?: boolean | null
+          member_name: string
+          member_phone?: string | null
+          paid_at?: string | null
+          share_amount: number
+          subscription_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_paid?: boolean | null
+          member_name?: string
+          member_phone?: string | null
+          paid_at?: string | null
+          share_amount?: number
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_members_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          created_at: string | null
+          currency: string | null
+          id: string
+          is_active: boolean | null
+          is_shared: boolean | null
+          next_billing_date: string
+          notes: string | null
+          service_name: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_shared?: boolean | null
+          next_billing_date: string
+          notes?: string | null
+          service_name: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_shared?: boolean | null
+          next_billing_date?: string
+          notes?: string | null
+          service_name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       transaction_items: {
         Row: {
