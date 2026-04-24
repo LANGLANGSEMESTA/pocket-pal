@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [budget, setBudget] = useState<Budget | null>(null);
   const [spent, setSpent] = useState(0);
   const [recent, setRecent] = useState<Tx[]>([]);
+  const [runningLow, setRunningLow] = useState<{ id: string; item_name: string; predicted_next_date: string | null }[]>([]);
 
   const today = useMemo(() => new Date(), []);
   const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
@@ -86,6 +87,19 @@ const Dashboard = () => {
         .gte("transaction_date", startOfMonth);
       const total = (sumRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       setSpent(total);
+
+      // Running low: stock items predicted to run out within 5 days
+      const fiveDays = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
+      const { data: lows } = await supabase
+        .from("stock_items")
+        .select("id, item_name, predicted_next_date")
+        .eq("user_id", currentUser.id)
+        .eq("is_active", true)
+        .not("predicted_next_date", "is", null)
+        .lte("predicted_next_date", fiveDays)
+        .order("predicted_next_date", { ascending: true })
+        .limit(5);
+      setRunningLow(lows || []);
     })();
   }, [isReady]);
 
