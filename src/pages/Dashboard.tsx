@@ -3,11 +3,13 @@ import { useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Plus, Camera, Scissors, Package, ChevronRight } from "lucide-react";
+import { Package, ChevronRight, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatRupiah, getCategory } from "@/lib/format";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { AvatarMenu } from "@/components/AvatarMenu";
+import { useI18n } from "@/hooks/useI18n";
 
 interface Tx {
   id: string;
@@ -25,11 +27,13 @@ interface Budget {
 
 const Dashboard = () => {
   const { isReady } = useAuthReady();
+  const { t } = useI18n();
   const [username, setUsername] = useState("");
   const [homeCurrency, setHomeCurrency] = useState("IDR");
   const [budget, setBudget] = useState<Budget | null>(null);
   const [spent, setSpent] = useState(0);
   const [recent, setRecent] = useState<Tx[]>([]);
+  const [runningLow, setRunningLow] = useState<{ id: string; item_name: string; predicted_next_date: string | null }[]>([]);
 
   const today = useMemo(() => new Date(), []);
   const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
@@ -83,6 +87,19 @@ const Dashboard = () => {
         .gte("transaction_date", startOfMonth);
       const total = (sumRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       setSpent(total);
+
+      // Running low: stock items predicted to run out within 5 days
+      const fiveDays = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
+      const { data: lows } = await supabase
+        .from("stock_items")
+        .select("id, item_name, predicted_next_date")
+        .eq("user_id", currentUser.id)
+        .eq("is_active", true)
+        .not("predicted_next_date", "is", null)
+        .lte("predicted_next_date", fiveDays)
+        .order("predicted_next_date", { ascending: true })
+        .limit(5);
+      setRunningLow(lows || []);
     })();
   }, [isReady]);
 
@@ -94,24 +111,27 @@ const Dashboard = () => {
   const toneText =
     tone === "ok" ? "text-success" : tone === "warn" ? "text-warning" : "text-danger";
   const message =
-    tone === "ok"
-      ? "Kamu masih aman! Jaga terus ya 💪"
-      : tone === "warn"
-      ? "Udah separuh nih, agak rem dikit ya 👀"
-      : "Budget tipis banget! Mode hemat aktif? 🚨";
-
-  const quickActions = [
-    { to: "/transactions/new", icon: Plus, label: "Catat Transaksi", color: "bg-primary-soft text-primary" },
-    { to: "/scan", icon: Camera, label: "Scan Struk", color: "bg-accent text-accent-foreground" },
-    { to: "/split", icon: Scissors, label: "Split Bill", color: "bg-warning-soft text-warning" },
-    { to: "/stock", icon: Package, label: "Cek Stok", color: "bg-success-soft text-success" },
-  ];
+    tone === "ok" ? t("ok_msg") : tone === "warn" ? t("warn_msg") : t("danger_msg");
 
   return (
     <div className="app-shell pb-28">
       <header className="px-5 pt-10 pb-5">
-        <h1 className="text-xl font-bold truncate">Hei {username || "Sobat"}! 👋</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold truncate">{t("greeting")} {username || "Sobat"}! 👋</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/notifications"
+              aria-label="Notifications"
+              className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-muted transition"
+            >
+              <Bell className="h-5 w-5" />
+            </Link>
+            <AvatarMenu username={username} />
+          </div>
+        </div>
       </header>
 
       <main className="px-5 space-y-5">
@@ -145,24 +165,48 @@ const Dashboard = () => {
           )}
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — only Cek Stok */}
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
-            Aksi Cepat
+            {t("quick_actions")}
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((a) => (
-              <Link key={a.to} to={a.to}>
-                <Card className="p-4 hover:shadow-md transition active:scale-[0.98]">
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", a.color)}>
-                    <a.icon className="h-5 w-5" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold">{a.label}</p>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <Link to="/stock">
+            <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
+                <Package className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold flex-1">{t("check_stock")}</p>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Card>
+          </Link>
         </div>
+
+        {/* Running Low */}
+        {runningLow.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-warning uppercase tracking-wide mb-2.5 px-1">
+              ⚠️ {t("running_low")}
+            </p>
+            <Card className="p-4 border-warning/30 bg-warning-soft/40">
+              <p className="text-xs text-muted-foreground mb-2">{t("running_low_desc")}</p>
+              <ul className="space-y-1.5">
+                {runningLow.map((s) => (
+                  <li key={s.id} className="flex justify-between text-sm">
+                    <span className="font-medium">{s.item_name}</span>
+                    {s.predicted_next_date && (
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(s.predicted_next_date).toLocaleDateString()}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/stock" className="block mt-3 text-xs text-primary font-semibold">
+                {t("see_all")} →
+              </Link>
+            </Card>
+          </div>
+        )}
 
         {/* Recent */}
         <div>
