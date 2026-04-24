@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SplashScreen, useSplash } from "@/components/SplashScreen";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
@@ -21,8 +22,11 @@ import Subscriptions from "./pages/Subscriptions.tsx";
 import Notifications from "./pages/Notifications.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const App = () => (
+const App = () => {
+  const { show, done } = useSplash();
+  return (
   <TooltipProvider>
+      {show && <SplashScreen onDone={done} />}
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -84,6 +88,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
   </TooltipProvider>
-);
+  );
+};
 
 export default App;

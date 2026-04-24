@@ -100,15 +100,6 @@ const NewTransaction = () => {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold flex-1">Catat Transaksi</h1>
-        <VoiceInput
-          onParsed={(d) => {
-            if (d.merchant) setMerchant(d.merchant);
-            if (d.amount) setAmount(String(d.amount));
-            if (d.category) setCategory(d.category);
-            if (d.payment_method) setPayment(d.payment_method);
-            if (d.notes) setNotes(d.notes);
-          }}
-        />
       </header>
 
       <main className="px-5 space-y-5">
@@ -236,13 +227,26 @@ const NewTransaction = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2.5 pt-2">
-          <Button variant="ghost" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
+        <div className="relative flex items-center gap-2.5 pt-2">
+          <Button variant="outline" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
             Batal
           </Button>
-          <Button className="flex-[2] h-12" onClick={save} disabled={saving}>
+          <div className="w-14 shrink-0" aria-hidden />
+          <Button className="flex-1 h-12" onClick={save} disabled={saving}>
             {saving ? "Menyimpan..." : "Simpan"}
           </Button>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-2">
+            <VoiceInput
+              floating
+              onParsed={(d) => {
+                if (d.merchant) setMerchant(d.merchant);
+                if (d.amount) setAmount(String(d.amount));
+                if (d.category) setCategory(d.category);
+                if (d.payment_method) setPayment(d.payment_method);
+                if (d.notes) setNotes(d.notes);
+              }}
+            />
+          </div>
         </div>
       </main>
     </div>
