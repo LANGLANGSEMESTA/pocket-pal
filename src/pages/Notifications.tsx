@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Bell, CreditCard, Users } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, Users, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatRupiah } from "@/lib/format";
 
 interface Notif {
   id: string;
-  type: "sub" | "split";
+  type: "sub" | "split" | "stock";
   title: string;
   desc: string;
   date: string;
@@ -24,43 +25,62 @@ const Notifications = () => {
     if (!user) return;
     (async () => {
       const today = new Date();
-      const in3 = new Date(today.getTime() + 3 * 86400000).toISOString().slice(0, 10);
+      const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+      const in5 = new Date(today.getTime() + 5 * 86400000).toISOString().slice(0, 10);
       const todayStr = today.toISOString().slice(0, 10);
 
-      const [{ data: subs }, { data: splits }] = await Promise.all([
+      const [{ data: subs }, { data: splits }, { data: stocks }] = await Promise.all([
         supabase
           .from("subscriptions")
-          .select("id, service_name, next_billing_date")
+          .select("id, service_name, next_billing_date, amount, currency")
           .eq("user_id", user.id)
           .eq("is_active", true)
           .gte("next_billing_date", todayStr)
-          .lte("next_billing_date", in3),
+          .lte("next_billing_date", in7),
         supabase
           .from("split_settlements")
           .select("id, member_name, amount_owed, created_at, transaction_id, transactions!inner(user_id)")
           .eq("transactions.user_id", user.id)
           .eq("is_settled", false),
+        supabase
+          .from("stock_items")
+          .select("id, item_name, predicted_next_date")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .not("predicted_next_date", "is", null)
+          .lte("predicted_next_date", in5),
       ]);
 
       const list: Notif[] = [];
-      (subs || []).forEach((s: any) =>
+      (subs || []).forEach((s: any) => {
+        const days = Math.ceil((new Date(s.next_billing_date).getTime() - today.getTime()) / 86400000);
         list.push({
           id: "sub-" + s.id,
           type: "sub",
           title: t("remind_sub", { name: s.service_name }),
-          desc: new Date(s.next_billing_date).toLocaleDateString(),
+          desc: `${formatRupiah(Number(s.amount), s.currency || "IDR")} · ${new Date(s.next_billing_date).toLocaleDateString()} (H-${Math.max(days, 0)})`,
           date: s.next_billing_date,
-        })
-      );
+        });
+      });
       (splits || []).forEach((s: any) =>
         list.push({
           id: "split-" + s.id,
           type: "split",
           title: t("remind_split", { name: s.member_name }),
-          desc: `Rp ${Number(s.amount_owed).toLocaleString("id-ID")}`,
+          desc: formatRupiah(Number(s.amount_owed)),
           date: s.created_at,
         })
       );
+      (stocks || []).forEach((s: any) =>
+        list.push({
+          id: "stock-" + s.id,
+          type: "stock",
+          title: s.item_name,
+          desc: `Diprediksi habis ${new Date(s.predicted_next_date).toLocaleDateString()}`,
+          date: s.predicted_next_date,
+        })
+      );
+      list.sort((a, b) => (a.date < b.date ? -1 : 1));
       setItems(list);
     })();
   }, [user, t]);
@@ -84,7 +104,7 @@ const Notifications = () => {
             <Card key={n.id}>
               <CardContent className="p-3 flex items-start gap-3">
                 <div className="h-9 w-9 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  {n.type === "sub" ? <CreditCard className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+                  {n.type === "sub" ? <CreditCard className="h-4 w-4" /> : n.type === "stock" ? <Package className="h-4 w-4" /> : <Users className="h-4 w-4" />}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">{n.title}</p>
