@@ -181,6 +181,33 @@ const Dashboard = () => {
           </Link>
         </div>
 
+        {/* Running Low */}
+        {runningLow.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-warning uppercase tracking-wide mb-2.5 px-1">
+              ⚠️ {t("running_low")}
+            </p>
+            <Card className="p-4 border-warning/30 bg-warning-soft/40">
+              <p className="text-xs text-muted-foreground mb-2">{t("running_low_desc")}</p>
+              <ul className="space-y-1.5">
+                {runningLow.map((s) => (
+                  <li key={s.id} className="flex justify-between text-sm">
+                    <span className="font-medium">{s.item_name}</span>
+                    {s.predicted_next_date && (
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(s.predicted_next_date).toLocaleDateString()}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/stock" className="block mt-3 text-xs text-primary font-semibold">
+                {t("see_all")} →
+              </Link>
+            </Card>
+          </div>
+        )}
+
         {/* Recent */}
         <div>
           <div className="flex items-center justify-between mb-2.5 px-1">
