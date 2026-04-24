@@ -19,7 +19,22 @@ serve(async (req) => {
     const systemPrompt =
       "You are a receipt OCR assistant. Extract data from receipt images and return ONLY valid JSON, no explanation.";
     const userPrompt =
-      "Extract this receipt data: { merchant_name: string, total_amount: number, currency: string (ISO 4217, default IDR), transaction_date: string (YYYY-MM-DD or null if not found), payment_method: string or null, items: [{item_name: string, price: number}] or [], confidence_score: number (0-1, where 1=all fields perfectly clear) }. If not a receipt image return {\"error\":\"INVALID_IMAGE\"}. confidence_score: 0.85+ if all main fields are clear, 0.60-0.84 if some fields uncertain, below 0.60 if mostly unreadable.";
+      `Extract this receipt data as JSON: { merchant_name: string, total_amount: number, currency: string (ISO 4217, default IDR), transaction_date: string (YYYY-MM-DD or null), payment_method: string or null, category: one of ["makan","kopi_survival","kopi_lifestyle","transport","kuliah","kos","belanja","kesehatan","hiburan","stok","lainnya"], items: [{item_name, price}] or [], confidence_score: number (0-1) }.
+
+Category rules (infer from merchant_name + items):
+- "transport": toll roads (Jasa Marga, Tol, Gerbang Tol, GTO), gas stations (Pertamina, Shell, BP, SPBU), ride-hailing (Gojek, GoCar, GoRide, Grab, Maxim, inDrive), parking, public transport (KRL, MRT, TransJakarta, KAI, train, bus, taxi), vehicle service.
+- "makan": restaurants, warung, fast food (KFC, McD, HokBen), bakery, food delivery for food, food court.
+- "kopi_survival": cheap coffee/warkop/instant coffee.
+- "kopi_lifestyle": Starbucks, Kopi Kenangan, Janji Jiwa, Fore, Tomoro, %Arabica, boba (Chatime, Xing Fu Tang, KOI).
+- "kuliah": stationery, books, printing, tuition.
+- "kos": rent, PLN, PDAM, Indihome, Biznet, gas LPG.
+- "belanja": clothing, fashion, electronics, marketplace goods.
+- "kesehatan": Apotek, Kimia Farma, Guardian, Watsons, hospital, clinic.
+- "hiburan": cinema (XXI, CGV), Netflix, Spotify, games, gym, concerts.
+- "stok": galon Aqua, gas LPG refill, laundry, beras.
+- "lainnya": only if nothing fits.
+
+If not a receipt return {"error":"INVALID_IMAGE"}. confidence_score: 0.85+ all clear, 0.60-0.84 some uncertain, <0.60 unreadable.`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

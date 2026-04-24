@@ -72,6 +72,7 @@ const Scan = () => {
       setAmount(String(r.total_amount || ""));
       setDate(r.transaction_date || new Date().toISOString().slice(0, 10));
       setPayment(r.payment_method || "Tunai");
+      if ((r as any).category) setCategory((r as any).category);
       // Increment scan_count
       if (user) {
         const monthKey = new Date().toISOString().slice(0, 7);
