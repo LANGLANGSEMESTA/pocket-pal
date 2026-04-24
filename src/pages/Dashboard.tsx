@@ -102,8 +102,22 @@ const Dashboard = () => {
   return (
     <div className="app-shell pb-28">
       <header className="px-5 pt-10 pb-5">
-        <h1 className="text-xl font-bold truncate">Hei {username || "Sobat"}! 👋</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold truncate">{t("greeting")} {username || "Sobat"}! 👋</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/notifications"
+              aria-label="Notifications"
+              className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-muted transition"
+            >
+              <Bell className="h-5 w-5" />
+            </Link>
+            <AvatarMenu username={username} />
+          </div>
+        </div>
       </header>
 
       <main className="px-5 space-y-5">
@@ -137,23 +151,20 @@ const Dashboard = () => {
           )}
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — only Cek Stok */}
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
-            Aksi Cepat
+            {t("quick_actions")}
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((a) => (
-              <Link key={a.to} to={a.to}>
-                <Card className="p-4 hover:shadow-md transition active:scale-[0.98]">
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", a.color)}>
-                    <a.icon className="h-5 w-5" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold">{a.label}</p>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <Link to="/stock">
+            <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
+                <Package className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold flex-1">{t("check_stock")}</p>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Card>
+          </Link>
         </div>
 
         {/* Recent */}
