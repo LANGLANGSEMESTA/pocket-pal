@@ -17,7 +17,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
 import { getInitials } from "@/lib/format";
-import { LANGS } from "@/lib/i18n/translations";
+import { LANGUAGES } from "@/lib/i18n/types";
 
 export const AvatarMenu = ({ username }: { username?: string }) => {
   const { signOut, user } = useAuth();
@@ -60,9 +60,9 @@ export const AvatarMenu = ({ username }: { username?: string }) => {
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="max-h-[300px] overflow-y-auto">
             <DropdownMenuRadioGroup value={lang} onValueChange={(v) => setLang(v as any)}>
-              {LANGS.map((l) => (
-                <DropdownMenuRadioItem key={l.code} value={l.code}>
-                  {l.flag} {l.name}
+              {LANGUAGES.map((l) => (
+                <DropdownMenuRadioItem key={l.v} value={l.v}>
+                  {l.flag} {l.l}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
