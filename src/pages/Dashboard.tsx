@@ -3,7 +3,7 @@ import { useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Package, ChevronRight, Bell } from "lucide-react";
+import { Package, ChevronRight, Bell, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatRupiah, getCategory } from "@/lib/format";
@@ -165,20 +165,29 @@ const Dashboard = () => {
           )}
         </Card>
 
-        {/* Quick Actions — only Cek Stok */}
+        {/* Quick Actions — Cek Stok & Langganan side-by-side */}
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
             {t("quick_actions")}
           </p>
-          <Link to="/stock">
-            <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
-                <Package className="h-5 w-5" />
-              </div>
-              <p className="text-sm font-semibold flex-1">{t("check_stock")}</p>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Card>
-          </Link>
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/stock">
+              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex flex-col items-start gap-2">
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
+                  <Package className="h-5 w-5" />
+                </div>
+                <p className="text-sm font-semibold leading-tight">{t("check_stock")}</p>
+              </Card>
+            </Link>
+            <Link to="/subscriptions">
+              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex flex-col items-start gap-2">
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary-soft text-primary">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <p className="text-sm font-semibold leading-tight">{t("subscriptions")}</p>
+              </Card>
+            </Link>
+          </div>
         </div>
 
         {/* Running Low */}
