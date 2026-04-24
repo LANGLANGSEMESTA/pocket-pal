@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { Mic, MicOff, Loader2 } from "lucide-react";
+import { Mic, Square, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/hooks/useI18n";
 import { toast } from "sonner";
@@ -13,7 +14,13 @@ type ParsedTx = {
   notes?: string | null;
 };
 
-export const VoiceInput = ({ onParsed }: { onParsed: (data: ParsedTx) => void }) => {
+export const VoiceInput = ({
+  onParsed,
+  floating = false,
+}: {
+  onParsed: (data: ParsedTx) => void;
+  floating?: boolean;
+}) => {
   const { t, lang } = useI18n();
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
@@ -65,6 +72,25 @@ export const VoiceInput = ({ onParsed }: { onParsed: (data: ParsedTx) => void })
     setListening(false);
   };
 
+  if (floating) {
+    const Icon = parsing ? Loader2 : listening ? Square : Mic;
+    return (
+      <button
+        type="button"
+        onClick={listening ? stop : start}
+        disabled={parsing}
+        aria-label={t("voice_input")}
+        className={cn(
+          "h-14 w-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground transition-transform active:scale-95",
+          listening ? "bg-destructive animate-pulse" : "bg-primary",
+          "ring-4 ring-background"
+        )}
+      >
+        <Icon className={cn("h-6 w-6", parsing && "animate-spin")} />
+      </button>
+    );
+  }
+
   return (
     <Button
       type="button"
@@ -77,7 +103,7 @@ export const VoiceInput = ({ onParsed }: { onParsed: (data: ParsedTx) => void })
       {parsing ? (
         <><Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}</>
       ) : listening ? (
-        <><MicOff className="h-4 w-4" /> {t("voice_listening")}</>
+        <><Square className="h-4 w-4" /> {t("voice_listening")}</>
       ) : (
         <><Mic className="h-4 w-4" /> {t("voice_input")}</>
       )}
