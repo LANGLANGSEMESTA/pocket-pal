@@ -3,11 +3,13 @@ import { useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Plus, Camera, Scissors, Package, ChevronRight } from "lucide-react";
+import { Package, ChevronRight, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatRupiah, getCategory } from "@/lib/format";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { AvatarMenu } from "@/components/AvatarMenu";
+import { useI18n } from "@/hooks/useI18n";
 
 interface Tx {
   id: string;
@@ -25,6 +27,7 @@ interface Budget {
 
 const Dashboard = () => {
   const { isReady } = useAuthReady();
+  const { t } = useI18n();
   const [username, setUsername] = useState("");
   const [homeCurrency, setHomeCurrency] = useState("IDR");
   const [budget, setBudget] = useState<Budget | null>(null);
@@ -94,18 +97,7 @@ const Dashboard = () => {
   const toneText =
     tone === "ok" ? "text-success" : tone === "warn" ? "text-warning" : "text-danger";
   const message =
-    tone === "ok"
-      ? "Kamu masih aman! Jaga terus ya 💪"
-      : tone === "warn"
-      ? "Udah separuh nih, agak rem dikit ya 👀"
-      : "Budget tipis banget! Mode hemat aktif? 🚨";
-
-  const quickActions = [
-    { to: "/transactions/new", icon: Plus, label: "Catat Transaksi", color: "bg-primary-soft text-primary" },
-    { to: "/scan", icon: Camera, label: "Scan Struk", color: "bg-accent text-accent-foreground" },
-    { to: "/split", icon: Scissors, label: "Split Bill", color: "bg-warning-soft text-warning" },
-    { to: "/stock", icon: Package, label: "Cek Stok", color: "bg-success-soft text-success" },
-  ];
+    tone === "ok" ? t("ok_msg") : tone === "warn" ? t("warn_msg") : t("danger_msg");
 
   return (
     <div className="app-shell pb-28">
