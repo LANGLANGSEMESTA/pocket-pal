@@ -17,6 +17,8 @@ import Stock from "./pages/Stock.tsx";
 import Reports from "./pages/Reports.tsx";
 import Parent from "./pages/Parent.tsx";
 import Settings from "./pages/Settings.tsx";
+import Subscriptions from "./pages/Subscriptions.tsx";
+import Notifications from "./pages/Notifications.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
@@ -74,6 +76,8 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/parent" element={<ProtectedRoute><Parent /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
          </I18nProvider>
