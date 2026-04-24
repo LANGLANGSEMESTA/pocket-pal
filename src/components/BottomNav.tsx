@@ -1,4 +1,4 @@
-import { Home, ClipboardList, BarChart3, Settings, Plus, Scissors } from "lucide-react";
+import { Home, ClipboardList, BarChart3, Plus, Scissors, CreditCard } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ const tabs = [
   { to: "/transactions", label: "Transaksi", icon: ClipboardList },
   { to: "/split", label: "Split", icon: Scissors },
   { to: "/reports", label: "Laporan", icon: BarChart3 },
-  { to: "/settings", label: "Pengaturan", icon: Settings },
+  { to: "/subscriptions", label: "Langganan", icon: CreditCard },
 ];
 
 export const BottomNav = () => {
@@ -32,21 +32,22 @@ export const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border z-40">
-      <div className="grid grid-cols-6 items-end relative">
+      <div className="relative grid grid-cols-5 items-end">
         <Tab {...tabs[0]} />
         <Tab {...tabs[1]} />
+        {/* center spacer */}
+        <div aria-hidden className="h-14" />
         <Tab {...tabs[2]} />
-        <div className="flex justify-center">
-          <button
-            onClick={() => navigate("/transactions/new")}
-            aria-label="Catat Transaksi"
-            className="-mt-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition"
-          >
-            <Plus className="h-6 w-6" strokeWidth={2.5} />
-          </button>
-        </div>
         <Tab {...tabs[3]} />
-        <Tab {...tabs[4]} />
+
+        {/* Perfectly centered FAB */}
+        <button
+          onClick={() => navigate("/transactions/new")}
+          aria-label="Catat Transaksi"
+          className="absolute left-1/2 -translate-x-1/2 -top-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition"
+        >
+          <Plus className="h-6 w-6" strokeWidth={2.5} />
+        </button>
       </div>
       <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
