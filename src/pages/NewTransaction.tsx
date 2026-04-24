@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, PAYMENT_METHODS } from "@/lib/format";
 import { requireAuthenticatedUser } from "@/lib/auth";
+import { VoiceInput } from "@/components/VoiceInput";
 import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
@@ -98,7 +99,16 @@ const NewTransaction = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="text-lg font-bold">Catat Transaksi</h1>
+        <h1 className="text-lg font-bold flex-1">Catat Transaksi</h1>
+        <VoiceInput
+          onParsed={(d) => {
+            if (d.merchant) setMerchant(d.merchant);
+            if (d.amount) setAmount(String(d.amount));
+            if (d.category) setCategory(d.category);
+            if (d.payment_method) setPayment(d.payment_method);
+            if (d.notes) setNotes(d.notes);
+          }}
+        />
       </header>
 
       <main className="px-5 space-y-5">
