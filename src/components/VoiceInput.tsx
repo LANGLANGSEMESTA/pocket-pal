@@ -30,9 +30,16 @@ export const VoiceInput = ({
     const SR =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      toast.error("Browser kamu belum support voice input");
+      toast.error("Browser belum support voice input. Coba pakai Chrome/Edge di desktop atau Android.");
       return;
     }
+    // Pre-flight: check mic permission. In iframes, getUserMedia surfaces a clear error
+    // while SpeechRecognition often fails silently.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Browser tidak mengizinkan akses mic di sini. Buka aplikasi di tab baru.");
+      return;
+    }
+
     const rec = new SR();
     const langMap: Record<string, string> = {
       id: "id-ID", en: "en-US", zh: "zh-CN", ja: "ja-JP", ko: "ko-KR",
@@ -60,11 +67,48 @@ export const VoiceInput = ({
         setParsing(false);
       }
     };
-    rec.onerror = () => { setListening(false); toast.error("Mic error"); };
+    rec.onerror = (e: any) => {
+      setListening(false);
+      const code = e?.error || "unknown";
+      console.error("[VoiceInput] SpeechRecognition error:", code, e);
+      const msg: Record<string, string> = {
+        "not-allowed": "Akses mic ditolak. Aktifkan permission mic di browser.",
+        "service-not-allowed": "Akses mic ditolak. Aktifkan permission mic di browser.",
+        "no-speech": "Tidak ada suara terdeteksi. Coba lagi.",
+        "audio-capture": "Mic tidak ditemukan di perangkat ini.",
+        "network": "Voice butuh koneksi internet (Web Speech pakai server Google).",
+        "aborted": "Mic dibatalkan.",
+      };
+      toast.error(msg[code] || `Mic error: ${code}`);
+    };
     rec.onend = () => setListening(false);
-    rec.start();
-    recRef.current = rec;
-    setListening(true);
+
+    // Trigger permission prompt via getUserMedia first (works inside iframes when allowed),
+    // then start recognition. This makes the permission dialog actually appear.
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        // Stop the mic stream immediately — SpeechRecognition opens its own.
+        stream.getTracks().forEach((t) => t.stop());
+        try {
+          rec.start();
+          recRef.current = rec;
+          setListening(true);
+        } catch (err: any) {
+          console.error("[VoiceInput] start() threw:", err);
+          toast.error("Tidak bisa memulai mic: " + (err?.message || "unknown"));
+        }
+      })
+      .catch((err) => {
+        console.error("[VoiceInput] getUserMedia denied:", err);
+        if (err?.name === "NotAllowedError") {
+          toast.error("Akses mic ditolak. Klik ikon gembok di address bar → izinkan Microphone.");
+        } else if (err?.name === "NotFoundError") {
+          toast.error("Mic tidak ditemukan di perangkat ini.");
+        } else {
+          toast.error("Mic tidak bisa diakses: " + (err?.message || err?.name || "unknown"));
+        }
+      });
   };
 
   const stop = () => {
