@@ -55,6 +55,45 @@ export type Database = {
           },
         ]
       }
+      monthly_reports: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          file_path: string | null
+          file_url: string | null
+          id: string
+          month: number
+          sent_to: Json | null
+          status: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          file_path?: string | null
+          file_url?: string | null
+          id?: string
+          month: number
+          sent_to?: Json | null
+          status?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          file_path?: string | null
+          file_url?: string | null
+          id?: string
+          month?: number
+          sent_to?: Json | null
+          status?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       parent_child: {
         Row: {
           budget_limit: number | null
@@ -103,9 +142,85 @@ export type Database = {
           },
         ]
       }
+      parent_links: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          parent_email: string
+          parent_label: string | null
+          parent_username: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          parent_email: string
+          parent_label?: string | null
+          parent_username: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          parent_email?: string
+          parent_label?: string | null
+          parent_username?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          created_at: string
+          currency: string | null
+          id: string
+          midtrans_transaction_id: string | null
+          order_id: string
+          paid_at: string | null
+          payment_type: string | null
+          raw_notification: Json | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          midtrans_transaction_id?: string | null
+          order_id: string
+          paid_at?: string | null
+          payment_type?: string | null
+          raw_notification?: Json | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          midtrans_transaction_id?: string | null
+          order_id?: string
+          paid_at?: string | null
+          payment_type?: string | null
+          raw_notification?: Json | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
+          email: string | null
           home_currency: string | null
           id: string
           onboarding_complete: boolean | null
@@ -114,9 +229,11 @@ export type Database = {
           scan_count_month: string | null
           ui_vibe: string | null
           username: string | null
+          username_handle: string | null
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
           home_currency?: string | null
           id: string
           onboarding_complete?: boolean | null
@@ -125,9 +242,11 @@ export type Database = {
           scan_count_month?: string | null
           ui_vibe?: string | null
           username?: string | null
+          username_handle?: string | null
         }
         Update: {
           created_at?: string | null
+          email?: string | null
           home_currency?: string | null
           id?: string
           onboarding_complete?: boolean | null
@@ -136,6 +255,7 @@ export type Database = {
           scan_count_month?: string | null
           ui_vibe?: string | null
           username?: string | null
+          username_handle?: string | null
         }
         Relationships: []
       }
@@ -408,15 +528,79 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          billing_cycle: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_pro: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -543,6 +727,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "user"],
+    },
   },
 } as const

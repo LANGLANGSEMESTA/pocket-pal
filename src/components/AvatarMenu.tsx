@@ -1,4 +1,4 @@
-import { LogOut, Settings as SettingsIcon, User as UserIcon, Languages, Sparkles } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, User as UserIcon, Languages, Sparkles, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
+import { usePlan } from "@/hooks/usePlan";
 import { getInitials } from "@/lib/format";
 import { LANGUAGES } from "@/lib/i18n/types";
 
 export const AvatarMenu = ({ username }: { username?: string }) => {
   const { signOut, user } = useAuth();
   const { lang, vibe, setLang, setVibe, t } = useI18n();
+  const { isPro, isSuperAdmin } = usePlan();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -53,6 +55,16 @@ export const AvatarMenu = ({ username }: { username?: string }) => {
         <DropdownMenuItem onClick={() => navigate("/settings")}>
           <SettingsIcon className="h-4 w-4 mr-2" /> {t("settings")}
         </DropdownMenuItem>
+        {!isPro && (
+          <DropdownMenuItem onClick={() => navigate("/upgrade")} className="text-primary focus:text-primary">
+            <Sparkles className="h-4 w-4 mr-2" /> Upgrade ke Pro
+          </DropdownMenuItem>
+        )}
+        {isSuperAdmin && (
+          <DropdownMenuItem onClick={() => navigate("/admin")}>
+            <Shield className="h-4 w-4 mr-2" /> Admin Panel
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>

@@ -20,6 +20,8 @@ import Parent from "./pages/Parent.tsx";
 import Settings from "./pages/Settings.tsx";
 import Subscriptions from "./pages/Subscriptions.tsx";
 import Notifications from "./pages/Notifications.tsx";
+import Upgrade from "./pages/Upgrade.tsx";
+import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => {
@@ -82,6 +84,8 @@ const App = () => {
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
          </I18nProvider>
