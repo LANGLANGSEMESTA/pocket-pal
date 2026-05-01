@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
-import { Mic, Square, Loader2 } from "lucide-react";
+import { Mic, Square, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/hooks/useI18n";
+import { usePlan } from "@/hooks/usePlan";
+import { ProUpsellDialog } from "@/components/ProGate";
 import { toast } from "sonner";
 
 type ParsedTx = {
@@ -22,11 +24,17 @@ export const VoiceInput = ({
   floating?: boolean;
 }) => {
   const { t, lang } = useI18n();
+  const { isPro, loading: planLoading } = usePlan();
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const recRef = useRef<any>(null);
 
   const start = () => {
+    if (!planLoading && !isPro) {
+      setUpsellOpen(true);
+      return;
+    }
     const SR =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
@@ -119,38 +127,52 @@ export const VoiceInput = ({
   if (floating) {
     const Icon = parsing ? Loader2 : listening ? Square : Mic;
     return (
-      <button
-        type="button"
-        onClick={listening ? stop : start}
-        disabled={parsing}
-        aria-label={t("voice_input")}
-        className={cn(
-          "h-14 w-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground transition-transform active:scale-95",
-          listening ? "bg-destructive animate-pulse" : "bg-primary",
-          "ring-4 ring-background"
-        )}
-      >
-        <Icon className={cn("h-6 w-6", parsing && "animate-spin")} />
-      </button>
+      <>
+        <button
+          type="button"
+          onClick={listening ? stop : start}
+          disabled={parsing}
+          aria-label={t("voice_input")}
+          className={cn(
+            "relative h-14 w-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground transition-transform active:scale-95",
+            listening ? "bg-destructive animate-pulse" : "bg-primary",
+            "ring-4 ring-background"
+          )}
+        >
+          <Icon className={cn("h-6 w-6", parsing && "animate-spin")} />
+          {!planLoading && !isPro && (
+            <span className="absolute -top-1 -right-1 bg-warning text-warning-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
+              <Lock className="h-2 w-2" /> PRO
+            </span>
+          )}
+        </button>
+        <ProUpsellDialog open={upsellOpen} onOpenChange={setUpsellOpen} feature="Voice input" />
+      </>
     );
   }
 
   return (
-    <Button
-      type="button"
-      variant={listening ? "destructive" : "outline"}
-      size="sm"
-      onClick={listening ? stop : start}
-      disabled={parsing}
-      className="gap-1.5"
-    >
-      {parsing ? (
-        <><Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}</>
-      ) : listening ? (
-        <><Square className="h-4 w-4" /> {t("voice_listening")}</>
-      ) : (
-        <><Mic className="h-4 w-4" /> {t("voice_input")}</>
-      )}
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant={listening ? "destructive" : "outline"}
+        size="sm"
+        onClick={listening ? stop : start}
+        disabled={parsing}
+        className="gap-1.5 relative"
+      >
+        {parsing ? (
+          <><Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}</>
+        ) : listening ? (
+          <><Square className="h-4 w-4" /> {t("voice_listening")}</>
+        ) : (
+          <>
+            <Mic className="h-4 w-4" /> {t("voice_input")}
+            {!planLoading && !isPro && <Lock className="h-3 w-3 ml-0.5 text-warning" />}
+          </>
+        )}
+      </Button>
+      <ProUpsellDialog open={upsellOpen} onOpenChange={setUpsellOpen} feature="Voice input" />
+    </>
   );
 };
