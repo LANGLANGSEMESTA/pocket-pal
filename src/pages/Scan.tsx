@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowLeft, Camera, Loader2, RefreshCw, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, RefreshCw, CheckCircle2, AlertTriangle, XCircle, Sparkles, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,7 @@ import { CATEGORIES, formatRupiah, PAYMENT_METHODS } from "@/lib/format";
 import { requireAuthenticatedUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
 
 type ScanResult = {
   merchant_name?: string;
@@ -29,6 +30,7 @@ type ScanResult = {
 const Scan = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isPro, loading: planLoading } = usePlan();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -152,6 +154,26 @@ const Scan = () => {
       </header>
 
       <main className="px-4 py-4 space-y-4">
+        {!planLoading && !isPro ? (
+          <Card className="border-primary/30 bg-gradient-to-br from-primary-soft to-card">
+            <CardContent className="p-6 text-center space-y-3">
+              <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-lg font-bold">Scan Struk adalah fitur Pro</h2>
+              <p className="text-sm text-muted-foreground">
+                Foto struk → AI baca otomatis → tinggal konfirmasi. Hemat waktu, no input manual.
+              </p>
+              <Button onClick={() => navigate("/upgrade")} className="w-full" size="lg">
+                <Sparkles className="h-4 w-4 mr-1.5" /> Upgrade ke Pro
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Mulai Rp 15.000/bulan. Voice input juga termasuk.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
         <Card className="bg-primary-soft border-primary/20">
           <CardContent className="p-3 text-xs text-primary flex gap-2">
             🔒 Foto kamu diproses di HP saja, tidak kami simpan ke server.
@@ -281,6 +303,8 @@ const Scan = () => {
               Gambar ini bukan struk. Coba foto struk yang lain.
             </CardContent>
           </Card>
+        )}
+          </>
         )}
       </main>
 
