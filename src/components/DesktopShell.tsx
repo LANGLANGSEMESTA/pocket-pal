@@ -48,7 +48,7 @@ export const DesktopShell = () => {
 
   return (
     <>
-      {/* Sidebar - Tetap Fixed di Kiri */}
+      {/* Sidebar - Fixed di Kiri */}
       <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-[240px] flex-col z-50 text-sidebar-foreground" style={{ background: "hsl(var(--sidebar-bg))" }}>
         <div className="px-6 pt-7 pb-8 flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary))" }}>
@@ -121,9 +121,9 @@ export const DesktopShell = () => {
         </div>
       </aside>
 
-      {/* Topbar - Perbaikan Lebar agar sejajar dengan Konten */}
+      {/* Topbar - Rapat Kiri Sejajar Konten */}
       <header className="hidden md:flex fixed top-0 left-[240px] right-0 h-[72px] items-center bg-background/90 backdrop-blur border-b border-border/60 z-40">
-        <div className="max-w-5xl mx-auto w-full px-10 flex items-center justify-between">
+        <div className="w-full max-w-6xl px-10 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="font-display text-[22px] font-bold truncate leading-tight">
               {pathname === "/dashboard" ? `Selamat pagi, ${username || "Sobat"}` : pageTitle(pathname)}
