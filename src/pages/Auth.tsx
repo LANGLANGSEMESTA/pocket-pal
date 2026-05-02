@@ -57,11 +57,19 @@ const Auth = () => {
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/`,
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Mengarahkan langsung ke domain Anda tanpa lewat proxy Lovable
+        redirectTo: window.location.origin, 
+      },
     });
-    if (result.error) toast.error(result.error.message || "Gagal masuk dengan Google");
-  };
+    if (error) throw error;
+  } catch (error: any) {
+    toast.error(error.message || "Gagal masuk dengan Google");
+  }
+};
 
   const handleForgot = async () => {
     if (!email) return toast.error("Masukkan email dulu ya");
