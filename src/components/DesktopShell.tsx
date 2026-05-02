@@ -48,7 +48,7 @@ export const DesktopShell = () => {
 
   return (
     <>
-      {/* Sidebar */}
+      {/* Sidebar - Tetap Fixed di Kiri */}
       <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-[240px] flex-col z-50 text-sidebar-foreground" style={{ background: "hsl(var(--sidebar-bg))" }}>
         <div className="px-6 pt-7 pb-8 flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary))" }}>
@@ -121,30 +121,32 @@ export const DesktopShell = () => {
         </div>
       </aside>
 
-      {/* Topbar */}
-      <header className="hidden md:flex fixed top-0 left-[240px] right-0 h-[72px] items-center justify-between px-10 bg-background/90 backdrop-blur border-b border-border/60 z-40">
-        <div className="min-w-0">
-          <h2 className="font-display text-[22px] font-bold truncate leading-tight">
-            {pathname === "/dashboard" ? `Selamat pagi, ${username || "Sobat"}` : pageTitle(pathname)}
-          </h2>
-          <p className="text-[12px] text-muted-foreground capitalize mt-0.5">{today} — Mei baru dimulai!</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/notifications")}
-            aria-label="Notifikasi"
-            className="h-10 w-10 rounded-full bg-card border border-border hover:bg-muted flex items-center justify-center transition"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => navigate("/transactions/new")}
-            className="h-10 px-5 rounded-full text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-95 transition shadow-md shadow-primary/30"
-            style={{ background: "hsl(var(--primary))" }}
-          >
-            <Plus className="h-4 w-4" />
-            Tambah Transaksi
-          </button>
+      {/* Topbar - Perbaikan Lebar agar sejajar dengan Konten */}
+      <header className="hidden md:flex fixed top-0 left-[240px] right-0 h-[72px] items-center bg-background/90 backdrop-blur border-b border-border/60 z-40">
+        <div className="max-w-5xl mx-auto w-full px-10 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="font-display text-[22px] font-bold truncate leading-tight">
+              {pathname === "/dashboard" ? `Selamat pagi, ${username || "Sobat"}` : pageTitle(pathname)}
+            </h2>
+            <p className="text-[12px] text-muted-foreground capitalize mt-0.5">{today} — Mei baru dimulai!</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/notifications")}
+              aria-label="Notifikasi"
+              className="h-10 w-10 rounded-full bg-card border border-border hover:bg-muted flex items-center justify-center transition"
+            >
+              <Bell className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate("/transactions/new")}
+              className="h-10 px-5 rounded-full text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-95 transition shadow-md shadow-primary/30"
+              style={{ background: "hsl(var(--primary))" }}
+            >
+              <Plus className="h-4 w-4" />
+              Tambah Transaksi
+            </button>
+          </div>
         </div>
       </header>
     </>
