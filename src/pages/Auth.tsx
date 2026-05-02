@@ -73,10 +73,23 @@ const Auth = () => {
   };
 
   return (
-    /* Perbaikan Utama: Menggunakan w-screen dan overflow-x-hidden agar tidak bisa geser kanan */
     <div className="flex flex-col items-center justify-center min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background px-4 py-10">
       <div className="w-full max-w-md mx-auto flex flex-col items-center">
         
+        {/* --- VIDEO ABACUS DISINI --- */}
+        <div className="w-full overflow-hidden rounded-2xl shadow-2xl mb-8 border border-white/10 bg-black">
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="w-full h-auto aspect-video object-cover"
+          >
+            <source src="https://tedqkttynjwsueugspbc.supabase.co/storage/v1/object/public/assets/f_f_a_a_e_b_f_c_mp_.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* --------------------------- */}
+
         <div className="flex flex-col items-center gap-3 mb-8 w-full">
           <div className="h-16 w-16 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
             <Wallet className="h-8 w-8" />
@@ -96,7 +109,7 @@ const Auth = () => {
 
             <TabsContent value={tab} className="mt-5">
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 text-left">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -108,7 +121,7 @@ const Auth = () => {
                     className="w-full"
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 text-left">
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
                     <Input
