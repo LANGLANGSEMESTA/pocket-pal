@@ -31,7 +31,7 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border z-40">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border z-40 md:hidden">
       <div className="relative grid grid-cols-5 items-end">
         <Tab {...tabs[0]} />
         <Tab {...tabs[1]} />
