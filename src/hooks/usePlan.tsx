@@ -28,32 +28,43 @@ export const usePlan = (): PlanInfo => {
       setLoading(false);
       return;
     }
+    
     setLoading(true);
-    const [{ data: sub }, { data: roles }] = await Promise.all([
+    
+    // Ambil data subscription DAN data profile (untuk cek role admin)
+    const [{ data: sub }, { data: profile }] = await Promise.all([
       supabase
-        .from("user_subscriptions" as any)
+        .from("user_subscriptions" as any) // Tabel langganan
         .select("plan, expires_at")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase
-        .from("user_roles" as any)
+        .from("profiles") // Tabel profil yang kita update tadi
         .select("role")
-        .eq("user_id", user.id),
+        .eq("id", user.id)
+        .maybeSingle(),
     ]);
+
     const s: any = sub;
-    setPlan((s?.plan as Plan) || "free");
+    const userRole = profile?.role;
+    
+    // LOGIKA BYPASS ADMIN:
+    // Jika role di database adalah 'admin', paksa status jadi 'pro' dan 'isSuperAdmin'
+    const isAdminAccount = userRole === "admin" || userRole === "super_admin";
+    
+    setPlan(isAdminAccount ? "pro" : (s?.plan as Plan) || "free");
     setExpiresAt(s?.expires_at ? new Date(s.expires_at) : null);
-    setIsSuperAdmin(!!(roles as any[])?.some((r) => r.role === "super_admin"));
+    setIsSuperAdmin(isAdminAccount);
     setLoading(false);
   };
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const isPro =
-    plan === "pro" && (!expiresAt || expiresAt.getTime() > Date.now());
+  // isPro akan TRUE jika plan memang Pro (berbayar) ATAU jika user adalah Admin
+  const isPro = 
+    isSuperAdmin || (plan === "pro" && (!expiresAt || expiresAt.getTime() > Date.now()));
 
   return { plan, expiresAt, isPro, isSuperAdmin, loading, refresh: load };
 };
