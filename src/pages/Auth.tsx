@@ -73,9 +73,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="app-shell flex flex-col items-center justify-center min-h-screen px-5 py-10">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center gap-3 mb-8">
+    /* Perbaikan Utama: Menggunakan w-screen dan overflow-x-hidden agar tidak bisa geser kanan */
+    <div className="flex flex-col items-center justify-center min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background px-4 py-10">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center">
+        
+        <div className="flex flex-col items-center gap-3 mb-8 w-full">
           <div className="h-16 w-16 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
             <Wallet className="h-8 w-8" />
           </div>
@@ -85,7 +87,7 @@ const Auth = () => {
           </div>
         </div>
 
-        <Card className="p-5 shadow-sm">
+        <Card className="w-full p-5 shadow-sm border">
           <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Masuk</TabsTrigger>
@@ -103,6 +105,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -115,7 +118,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete={tab === "login" ? "current-password" : "new-password"}
-                      className="pr-10"
+                      className="pr-10 w-full"
                     />
                     <button
                       type="button"
@@ -146,7 +149,7 @@ const Auth = () => {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-card px-2 text-muted-foreground">atau</span>
+                  <span className="bg-card px-2 text-muted-foreground uppercase">atau</span>
                 </div>
               </div>
 
@@ -156,7 +159,7 @@ const Auth = () => {
                 className="w-full h-11"
                 onClick={handleGoogle}
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"/>
@@ -168,7 +171,7 @@ const Auth = () => {
           </Tabs>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-muted-foreground mt-6 px-4">
           Dengan masuk, kamu setuju dengan ketentuan kami.
         </p>
       </div>
