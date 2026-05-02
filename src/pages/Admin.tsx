@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Shield, Search, Sparkles, Calendar, X } from "lucide-react";
+import { ArrowLeft, Shield, Search, Sparkles, Calendar, X, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { usePlan } from "@/hooks/usePlan";
+import { useAuth } from "@/hooks/useAuth"; // Gunakan useAuth langsung
 import { formatRupiah } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -29,7 +29,10 @@ interface AdminUser {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { isSuperAdmin, loading } = usePlan();
+  const { user, loading: authLoading } = useAuth(); // Ambil user dari auth
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [verifying, setVerifying] = useState(true);
+  
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [search, setSearch] = useState("");
   const [stats, setStats] = useState({ total: 0, pro: 0, mrr: 0 });
@@ -65,8 +68,27 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!loading && isSuperAdmin) load();
-  }, [loading, isSuperAdmin]);
+    const checkAccess = async () => {
+      if (!user) {
+        setVerifying(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (data?.role === 'admin') {
+        setIsAdmin(true);
+        load();
+      }
+      setVerifying(false);
+    };
+
+    if (!authLoading) checkAccess();
+  }, [user, authLoading]);
 
   const openEdit = (u: AdminUser) => {
     setEditing(u);
@@ -100,23 +122,21 @@ const Admin = () => {
     load();
   };
 
-  if (loading) {
+  if (authLoading || verifying) {
     return (
-      <div className="app-shell flex items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center">
         <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  if (!isSuperAdmin) {
+  if (!isAdmin) {
     return (
-      <div className="app-shell flex items-center justify-center text-center px-4">
-        <div>
-          <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h1 className="text-lg font-bold">Akses ditolak</h1>
-          <p className="text-sm text-muted-foreground mb-4">Halaman ini hanya untuk super admin.</p>
-          <Button onClick={() => navigate("/dashboard")}>Kembali</Button>
-        </div>
+      <div className="flex h-screen w-full flex-col items-center justify-center text-center px-4">
+        <ShieldCheck className="h-16 w-16 text-red-500 mb-4" />
+        <h1 className="text-2xl font-bold">Akses Ditolak</h1>
+        <p className="text-muted-foreground mb-6 max-w-xs">Akun {user?.email} tidak terdaftar sebagai Super Admin.</p>
+        <Button onClick={() => navigate("/dashboard")}>Kembali ke Beranda</Button>
       </div>
     );
   }
@@ -127,21 +147,19 @@ const Admin = () => {
   });
 
   return (
-    <div className="app-shell pb-12">
+    <div className="pb-12">
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 pt-5 pb-3 flex items-center gap-2">
         <button onClick={() => navigate("/dashboard")} className="-ml-2 p-2"><ArrowLeft className="h-5 w-5" /></button>
-        <h1 className="text-xl font-bold flex items-center gap-1.5"><Shield className="h-5 w-5 text-primary" /> Admin Panel</h1>
+        <h1 className="text-xl font-bold flex items-center gap-1.5 text-orange-600"><Shield className="h-5 w-5" /> Admin Panel</h1>
       </header>
 
       <main className="px-4 py-4 space-y-4">
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-2">
           <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Total user</div><div className="font-bold text-lg">{stats.total}</div></CardContent></Card>
           <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Pengguna Pro</div><div className="font-bold text-lg text-primary">{stats.pro}</div></CardContent></Card>
           <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">MRR estimasi</div><div className="font-bold text-sm">{formatRupiah(stats.mrr)}</div></CardContent></Card>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 border-b border-border">
           {(["users", "payments"] as const).map((k) => (
             <button
@@ -190,7 +208,6 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               ))}
-              {filtered.length === 0 && <p className="text-sm text-center text-muted-foreground py-8">Tidak ada user.</p>}
             </div>
           </>
         )}
@@ -208,15 +225,7 @@ const Admin = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-bold">{formatRupiah(Number(p.amount))}</div>
-                      <Badge
-                        className={
-                          p.status === "settlement" || p.status === "capture"
-                            ? "bg-success text-success-foreground"
-                            : p.status === "pending"
-                            ? "bg-warning text-warning-foreground"
-                            : "bg-danger text-danger-foreground"
-                        }
-                      >
+                      <Badge className={p.status === "settlement" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}>
                         {p.status}
                       </Badge>
                     </div>
@@ -224,12 +233,10 @@ const Admin = () => {
                 </CardContent>
               </Card>
             ))}
-            {payments.length === 0 && <p className="text-sm text-center text-muted-foreground py-8">Belum ada pembayaran.</p>}
           </div>
         )}
       </main>
 
-      {/* Edit dialog */}
       <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
