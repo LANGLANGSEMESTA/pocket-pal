@@ -64,7 +64,21 @@ const Auth = () => {
         // Mengarahkan langsung ke domain Anda tanpa lewat proxy Lovable
         redirectTo: window.location.origin, 
       },
+    });// KODE BARU (Gunakan ini)
+const handleGoogle = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Mengarahkan langsung ke domain Anda tanpa lewat proxy Lovable
+        redirectTo: window.location.origin, 
+      },
     });
+    if (error) throw error;
+  } catch (error: any) {
+    toast.error(error.message || "Gagal masuk dengan Google");
+  }
+};
     if (error) throw error;
   } catch (error: any) {
     toast.error(error.message || "Gagal masuk dengan Google");
