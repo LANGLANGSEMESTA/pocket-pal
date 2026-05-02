@@ -46,17 +46,12 @@ const App = () => {
       <BrowserRouter>
         <AuthProvider>
           <I18nProvider>
-            {/* Sidebar & Header melayang */}
             <ShellGate />
-            
-            {/* Area Konten Utama */}
             <div className="min-h-screen bg-background">
-              {/* md:pl-[240px] = memberi jarak agar konten tidak tertutup sidebar di desktop
-                pt-[72px] = memberi jarak agar konten tidak tertutup header di desktop
-              */}
+              {/* pl-[240px] agar menempel pas di samping sidebar */}
               <main className="md:pl-[240px] pt-[72px]">
-                {/* max-w-5xl & mx-auto = Pengunci agar konten (seperti Settings) tidak meluber */}
-                <div className="max-w-5xl mx-auto p-6 md:p-10 w-full">
+                {/* max-w-6xl tanpa mx-auto agar rapat kiri tapi tetap punya batas lebar */}
+                <div className="w-full max-w-6xl p-6 md:p-10">
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
