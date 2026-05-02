@@ -73,44 +73,51 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background px-4 py-10">
-      <div className="w-full max-w-md mx-auto flex flex-col items-center">
-        
-        {/* --- VIDEO ABACUS DISINI --- */}
-        <div className="w-full overflow-hidden rounded-2xl shadow-2xl mb-8 border border-white/10 bg-black">
-          <video 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="w-full h-auto aspect-video object-cover"
-          >
-            <source src="https://tedqkttynjwsueugspbc.supabase.co/storage/v1/object/public/assets/f_f_a_a_e_b_f_c_mp_.mp4" type="video/mp4" />
-          </video>
-        </div>
-        {/* --------------------------- */}
+    // CONTAINER UTAMA (Penuh Layar)
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-black p-4">
+      
+      {/* 1. KODE VIDEO LATAR BELAKANG (Anti-Watermark) */}
+      <div className="absolute inset-0 z-0 h-full w-full">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          // Kunci CSS: Memperbesar sedikit (scale-110) untuk membuang watermark "Veo" ke luar layar
+          className="absolute inset-0 h-full w-full object-cover scale-110 opacity-70"
+        >
+          <source src="https://tedqkttynjwsueugspbc.supabase.co/storage/v1/object/public/assets/f_f_a_a_e_b_f_c_mp_.mp4" type="video/mp4" />
+        </video>
+        {/* Lapisan Hitam Transparan untuk menajamkan kontras form */}
+        <div className="absolute inset-0 bg-black/50 z-10" />
+      </div>
 
-        <div className="flex flex-col items-center gap-3 mb-8 w-full">
-          <div className="h-16 w-16 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
+      {/* 2. KODE KONTEN FORM LOGIN (Berada di atas Video) */}
+      <div className="relative z-20 w-full max-w-md mx-auto flex flex-col items-center">
+        
+        {/* LOGO & JUDUL (Disederhanakan & Tanpa Margin Bawah Besar) */}
+        <div className="flex flex-col items-center gap-3 mb-6 w-full text-white">
+          <div className="h-16 w-16 rounded-3xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30">
             <Wallet className="h-8 w-8" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">Student Pocket</h1>
-            <p className="text-sm text-muted-foreground mt-1">Kelola uangmu, tenang kuliah ✨</p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Student Pocket</h1>
+            <p className="text-sm text-gray-300 mt-1">Kelola uangmu, tenang kuliah ✨</p>
           </div>
         </div>
 
-        <Card className="w-full p-5 shadow-sm border">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Masuk</TabsTrigger>
-              <TabsTrigger value="register">Daftar</TabsTrigger>
+        {/* KOTAK LOGIN (Diperbarui: Sedikit Transparan agar Elegan) */}
+        <Card className="w-full p-6 shadow-2xl border border-white/10 bg-white/5 backdrop-blur-lg">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-white/10 text-white">
+              <TabsTrigger value="login" className="data-[state=active]:bg-primary">Masuk</TabsTrigger>
+              <TabsTrigger value="register" className="data-[state=active]:bg-primary">Daftar</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={tab} className="mt-5">
+            <TabsContent value={tab} className="mt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5 text-left">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-gray-200">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -118,11 +125,12 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="w-full"
+                    // Input styling agar serasi dengan background gelap
+                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-11"
                   />
                 </div>
                 <div className="space-y-1.5 text-left">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-gray-200">Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -131,47 +139,34 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete={tab === "login" ? "current-password" : "new-password"}
-                      className="pr-10 w-full"
+                      className="pr-10 w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-11"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPwd(!showPwd)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                     >
                       {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {tab === "login" && (
-                    <button
-                      type="button"
-                      onClick={handleForgot}
-                      className="text-xs text-primary hover:underline mt-1"
-                    >
+                    <button type="button" onClick={handleForgot} className="text-xs text-primary-foreground hover:underline mt-1">
                       Lupa password?
                     </button>
                   )}
                 </div>
 
-                <Button type="submit" className="w-full h-11" disabled={loading}>
-                  {loading ? "Memproses…" : tab === "login" ? "Masuk" : "Buat Akun"}
+                <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+                  {loading ? "Memproses…" : tab === "login" ? "Masuk ke Akun" : "Buat Akun Baru"}
                 </Button>
               </form>
 
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-card px-2 text-muted-foreground uppercase">atau</span>
-                </div>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-gray-400">atau</span></div>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11"
-                onClick={handleGoogle}
-              >
+              <Button type="button" variant="outline" className="w-full h-11 border-white/20 text-white hover:bg-white/10" onClick={handleGoogle}>
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -184,12 +179,11 @@ const Auth = () => {
           </Tabs>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-6 px-4">
+        <p className="text-center text-xs text-gray-400 mt-6 px-4">
           Dengan masuk, kamu setuju dengan ketentuan kami.
         </p>
       </div>
     </div>
   );
-};
 
 export default Auth;
