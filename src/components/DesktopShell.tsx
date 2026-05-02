@@ -48,8 +48,8 @@ export const DesktopShell = () => {
 
   return (
     <>
-      {/* Sidebar - Fixed di Kiri */}
-      <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-[240px] flex-col z-50 text-sidebar-foreground" style={{ background: "hsl(var(--sidebar-bg))" }}>
+      {/* Sidebar - Ditambahkan z-[60] agar lebih tinggi dari elemen mana pun */}
+      <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-[240px] flex-col z-[60] text-sidebar-foreground" style={{ background: "hsl(var(--sidebar-bg))" }}>
         <div className="px-6 pt-7 pb-8 flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary))" }}>
             <Wallet className="h-5 w-5 text-white" />
@@ -105,12 +105,17 @@ export const DesktopShell = () => {
           </div>
         </nav>
 
-        <div className="px-3 py-4 border-t border-white/5">
+        {/* Bagian Profil - Ditambahkan cursor-pointer dan relative z-10 */}
+        <div className="px-3 py-4 border-t border-white/5 bg-inherit mt-auto">
           <button
-            onClick={() => navigate("/settings")}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition text-left"
+            onClick={() => {
+              console.log("Navigating to settings...");
+              navigate("/settings");
+            }}
+            type="button"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all text-left cursor-pointer relative z-[70]"
           >
-            <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
               {(username || email || "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
@@ -121,19 +126,18 @@ export const DesktopShell = () => {
         </div>
       </aside>
 
-      {/* Topbar - Rapat Kiri Sejajar Konten */}
+      {/* Topbar */}
       <header className="hidden md:flex fixed top-0 left-[240px] right-0 h-[72px] items-center bg-background/90 backdrop-blur border-b border-border/60 z-40">
         <div className="w-full max-w-6xl px-10 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="font-display text-[22px] font-bold truncate leading-tight">
               {pathname === "/dashboard" ? `Selamat pagi, ${username || "Sobat"}` : pageTitle(pathname)}
             </h2>
-            <p className="text-[12px] text-muted-foreground capitalize mt-0.5">{today} — Mei baru dimulai!</p>
+            <p className="text-[12px] text-muted-foreground capitalize mt-0.5">{today}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/notifications")}
-              aria-label="Notifikasi"
               className="h-10 w-10 rounded-full bg-card border border-border hover:bg-muted flex items-center justify-center transition"
             >
               <Bell className="h-5 w-5" />
