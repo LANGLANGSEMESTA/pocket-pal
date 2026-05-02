@@ -342,7 +342,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Quick Actions — Cek Stok & Langganan side-by-side */}
-        <div>
+        <div className="md:hidden">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
             {t("quick_actions")}
           </p>
@@ -368,7 +368,7 @@ const Dashboard = () => {
 
         {/* Running Low */}
         {runningLow.length > 0 && (
-          <div>
+          <div className="md:hidden">
             <p className="text-xs font-semibold text-warning uppercase tracking-wide mb-2.5 px-1">
               ⚠️ {t("running_low")}
             </p>
@@ -394,7 +394,7 @@ const Dashboard = () => {
         )}
 
         {/* Recent */}
-        <div>
+        <div className="md:hidden">
           <div className="flex items-center justify-between mb-2.5 px-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Transaksi Terbaru
