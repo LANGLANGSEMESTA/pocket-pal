@@ -6,6 +6,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SplashScreen, useSplash } from "@/components/SplashScreen";
+import { DesktopShell } from "@/components/DesktopShell";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "react-router-dom";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
@@ -24,6 +27,14 @@ import Upgrade from "./pages/Upgrade.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
+const ShellGate = () => {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  const hideOn = ["/", "/auth", "/onboarding"];
+  if (!user || hideOn.includes(pathname)) return null;
+  return <DesktopShell />;
+};
+
 const App = () => {
   const { show, done } = useSplash();
   return (
@@ -34,6 +45,7 @@ const App = () => {
       <BrowserRouter>
         <AuthProvider>
          <I18nProvider>
+          <ShellGate />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />

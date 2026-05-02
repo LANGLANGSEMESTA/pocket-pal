@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   return (
     <div className="app-shell pb-28">
-      <header className="px-5 pt-10 pb-5">
+      <header className="px-5 pt-10 pb-5 md:hidden">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl font-bold truncate">{t("greeting")} {username || "Sobat"}! 👋</h1>
@@ -134,9 +134,46 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="px-5 space-y-5">
+      <main className="px-5 md:px-8 md:py-8 space-y-5 md:space-y-6 md:max-w-[1400px]">
+        {/* Desktop hero summary */}
+        <div
+          className="hidden md:block rounded-[24px] p-8 text-white relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, hsl(22 50% 12%) 0%, hsl(18 87% 28%) 100%)",
+          }}
+        >
+          <p className="text-sm uppercase tracking-widest text-white/60">Total Pengeluaran Bulan Ini</p>
+          <p className="font-display text-5xl font-bold mt-2 text-gold">
+            {formatRupiah(spent, budget?.currency || homeCurrency)}
+          </p>
+          {limit > 0 && (
+            <p className="text-sm text-white/70 mt-2">
+              dari budget {formatRupiah(limit, budget?.currency || homeCurrency)} • {Math.round(pct)}% terpakai
+            </p>
+          )}
+        </div>
+
+        {/* Desktop stat cards */}
+        <div className="hidden md:grid grid-cols-3 gap-5">
+          <div className="premium-card p-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Transaksi</p>
+            <p className="font-display text-3xl font-bold mt-2">{recent.length}+</p>
+            <p className="text-xs text-muted-foreground mt-1">Bulan ini</p>
+          </div>
+          <div className="premium-card p-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Stok Menipis</p>
+            <p className="font-display text-3xl font-bold mt-2 text-gold">{runningLow.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Item perlu dibeli</p>
+          </div>
+          <div className="premium-card p-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Status Budget</p>
+            <p className={cn("font-display text-3xl font-bold mt-2", toneText)}>{Math.round(pct)}%</p>
+            <p className="text-xs text-muted-foreground mt-1">{message}</p>
+          </div>
+        </div>
+
         {/* Budget */}
-        <Card className="p-5">
+        <Card className="p-5 md:hidden">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Budget Bulan Ini</p>
             {limit > 0 && (
