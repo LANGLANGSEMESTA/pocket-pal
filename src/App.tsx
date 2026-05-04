@@ -27,12 +27,94 @@ import Upgrade from "./pages/Upgrade.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
+const FULLSCREEN_ROUTES = ["/", "/auth", "/onboarding"];
+
 const ShellGate = () => {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const hideOn = ["/", "/auth", "/onboarding"];
-  if (!user || hideOn.includes(pathname)) return null;
+  if (!user || FULLSCREEN_ROUTES.includes(pathname)) return null;
   return <DesktopShell />;
+};
+
+const AppContent = () => {
+  const { pathname } = useLocation();
+  const isFullscreen = FULLSCREEN_ROUTES.includes(pathname);
+
+  if (isFullscreen) {
+    return (
+      <div className="w-full min-h-screen">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute requireOnboarding={false}>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      <div className="hidden md:block w-[240px] shrink-0" />
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 pt-[72px]">
+          <div className="w-full max-w-6xl p-6 md:p-10">
+            <Routes>
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transactions"
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transactions/new"
+                element={
+                  <ProtectedRoute>
+                    <NewTransaction />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/split"
+                element={
+                  <ProtectedRoute>
+                    <SplitBill />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
+              <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/parent" element={<ProtectedRoute><Parent /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><Admin /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 const App = () => {
@@ -46,76 +128,8 @@ const App = () => {
       <BrowserRouter>
         <AuthProvider>
           <I18nProvider>
-            {/* Sidebar & Header */}
             <ShellGate />
-            
-            <div className="min-h-screen bg-background flex">
-              {/* SPACER: Blok fisik ini memastikan area sidebar 240px 
-                  benar-benar kosong dan tidak tertutup elemen konten utama */}
-              <div className="hidden md:block w-[240px] shrink-0" />
-
-              <div className="flex-1 flex flex-col min-w-0">
-                {/* Area Utama */}
-                <main className="flex-1 pt-[72px]">
-                  <div className="w-full max-w-6xl p-6 md:p-10">
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route
-                        path="/onboarding"
-                        element={
-                          <ProtectedRoute requireOnboarding={false}>
-                            <Onboarding />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/transactions"
-                        element={
-                          <ProtectedRoute>
-                            <Transactions />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/transactions/new"
-                        element={
-                          <ProtectedRoute>
-                            <NewTransaction />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/split"
-                        element={
-                          <ProtectedRoute>
-                            <SplitBill />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
-                      <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
-                      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                      <Route path="/parent" element={<ProtectedRoute><Parent /></ProtectedRoute>} />
-                      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                      <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
-                      <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-                      <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
-                      <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><Admin /></ProtectedRoute>} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                </main>
-              </div>
-            </div>
+            <AppContent />
           </I18nProvider>
         </AuthProvider>
       </BrowserRouter>
