@@ -1,5 +1,5 @@
 // Edge function: parse a voice transcript into amount + merchant + category
-// Uses Lovable AI Gateway (free, no extra key needed). CORS enabled.
+// Uses DeepSeek V4 API. CORS enabled.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,76 +18,59 @@ Deno.serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
+    const DEEPSEEK_API_KEY = Deno.env.get("sk-2df51f2b904b42ffa54ccd64b084b5c9");
+    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY missing");
 
-    const systemPrompt = `You are an expense parser. Extract structured data from a short spoken expense in any language. Return ONLY JSON via the tool. Examples:
-- "Kopi 30 ribu" -> {merchant:"Kopi", amount:30000, category:"kopi_lifestyle"}
-- "Bensin 50rb" -> {merchant:"Bensin", amount:50000, category:"transport"}
-- "Makan siang 25 ribu di warteg" -> {merchant:"Warteg", amount:25000, category:"makan"}
-- "Coffee 5 dollars" -> {merchant:"Coffee", amount:5, category:"kopi_lifestyle"}
-- "Netflix 15000" -> {merchant:"Netflix", amount:15000, category:"hiburan"}
+    const systemPrompt = `You are an expense parser. Extract structured data from a short spoken expense in any language. Return ONLY valid JSON with these fields: merchant, amount, category, payment_method, notes, confidence.
+Examples:
+- "Kopi 30 ribu" -> {"merchant":"Kopi","amount":30000,"category":"kopi_lifestyle","payment_method":null,"notes":null,"confidence":0.95}
+- "Bensin 50rb gopay" -> {"merchant":"Bensin","amount":50000,"category":"transport","payment_method":"GoPay","notes":null,"confidence":0.9}
+- "Makan siang 25 ribu di warteg" -> {"merchant":"Warteg","amount":25000,"category":"makan","payment_method":null,"notes":"makan siang","confidence":0.95}
 Indonesian shortcuts: "ribu"/"rb"=*1000, "juta"/"jt"=*1000000, "k"=*1000.
 Categories: makan, kopi_survival, kopi_lifestyle, transport, kuliah, kos, belanja, kesehatan, hiburan, stok, lainnya.
-If unparseable, set confidence to 0.`;
+Payment methods: Tunai, GoPay, OVO, DANA, Transfer, Kartu.
+Return ONLY the JSON object, no markdown, no explanation.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-chat", // DeepSeek V4 / DeepSeek-V3 latest
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Language hint: ${lang || "id"}\nTranscript: "${transcript}"` },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_expense",
-              description: "Extract expense fields from a spoken transcript",
-              parameters: {
-                type: "object",
-                properties: {
-                  merchant: { type: "string", description: "Merchant or item name, capitalized" },
-                  amount: { type: "number", description: "Numeric amount in the local currency" },
-                  category: {
-                    type: "string",
-                    enum: ["makan", "kopi_survival", "kopi_lifestyle", "transport", "kuliah", "kos", "belanja", "kesehatan", "hiburan", "stok", "lainnya"],
-                  },
-                  confidence: { type: "number", description: "0 to 1" },
-                },
-                required: ["merchant", "amount", "category", "confidence"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_expense" } },
+        temperature: 0.1,
+        max_tokens: 256,
       }),
     });
 
-    if (response.status === 429) {
-      return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    if (response.status === 402) {
-      return new Response(JSON.stringify({ error: "Credits required" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
     if (!response.ok) {
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI parse failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("DeepSeek API error:", response.status, t);
+      return new Response(JSON.stringify({ error: "AI parse failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await response.json();
-    const args = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    const parsed = args ? JSON.parse(args) : null;
+    const rawText = data.choices?.[0]?.message?.content || "";
 
-    if (!parsed) {
-      return new Response(JSON.stringify({ error: "No structured output" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Strip markdown fences if any
+    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.error("Failed to parse DeepSeek output:", rawText);
+      return new Response(JSON.stringify({ error: "Failed to parse AI output" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify(parsed), {
