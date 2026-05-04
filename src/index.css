@@ -118,7 +118,7 @@
 
 @layer components {
   .app-shell {
-    @apply mx-auto w-full max-w-[430px] min-h-screen bg-background relative md:max-w-none md:ml-[240px] md:pt-[68px];
+    @apply w-full min-h-screen bg-background relative;
   }
   .premium-card {
     @apply bg-card border border-border rounded-[20px];
