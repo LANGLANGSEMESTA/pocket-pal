@@ -1,61 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     /* Student Pocket — premium terracotta + cream + gold */
     --background: 35 38% 97%;             /* #FAF7F2 warm cream */
     --foreground: 22 56% 7%;               /* #1C1008 deep coffee */
-
     --card: 0 0% 100%;
     --card-foreground: 22 56% 7%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 22 56% 7%;
-
     --primary: 18 87% 41%;                 /* #C1440E terracotta */
     --primary-foreground: 0 0% 100%;
     --primary-soft: 18 70% 94%;
     --primary-hover: 16 67% 50%;           /* #D4562A */
-
     --gold: 38 56% 51%;                    /* #C9963A */
     --gold-foreground: 22 56% 7%;
-
     --sidebar-bg: 22 50% 8%;               /* #1C0F0A */
-
     --secondary: 32 33% 92%;
     --secondary-foreground: 22 56% 7%;
-
     --muted: 32 30% 93%;
     --muted-foreground: 22 22% 46%;        /* #8B6F5E */
-
     --accent: 18 70% 94%;
     --accent-foreground: 18 87% 41%;
-
     --success: 142 53% 26%;             /* #166534 */
     --success-foreground: 0 0% 100%;
     --success-soft: 142 53% 94%;
-
     --warning: 32 81% 29%;              /* #92400E */
     --warning-foreground: 0 0% 100%;
     --warning-soft: 32 81% 94%;
-
     --danger: 0 71% 36%;                /* #991B1B */
     --danger-foreground: 0 0% 100%;
     --danger-soft: 0 71% 95%;
-
     --destructive: 0 71% 36%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 32 32% 88%;                  /* #EDE0D4 */
     --input: 32 32% 88%;
     --ring: 18 87% 41%;
-
     --radius: 0.75rem;
-
     --sidebar-background: 22 50% 8%;
     --sidebar-foreground: 32 25% 80%;
     --sidebar-primary: 18 87% 41%;
@@ -65,7 +48,6 @@
     --sidebar-border: 22 35% 16%;
     --sidebar-ring: 18 87% 41%;
   }
-
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
@@ -98,13 +80,17 @@
     --ring: 224 76% 60%;
   }
 }
-
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
   html, body, #root {
     @apply h-full;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
@@ -115,7 +101,6 @@
     letter-spacing: -0.01em;
   }
 }
-
 @layer components {
   .app-shell {
     @apply w-full min-h-screen bg-background relative;
