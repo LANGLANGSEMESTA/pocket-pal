@@ -28,100 +28,102 @@ export const VoiceInput = ({
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
-  const recRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const start = () => {
+  const start = async () => {
     if (!planLoading && !isPro) {
       setUpsellOpen(true);
       return;
     }
-    const SR =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      toast.error("Browser belum support voice input. Coba pakai Chrome/Edge di desktop atau Android.");
-      return;
-    }
-    // Pre-flight: check mic permission. In iframes, getUserMedia surfaces a clear error
-    // while SpeechRecognition often fails silently.
+
     if (!navigator.mediaDevices?.getUserMedia) {
-      toast.error("Browser tidak mengizinkan akses mic di sini. Buka aplikasi di tab baru.");
+      toast.error("Browser tidak mengizinkan akses mic di sini.");
       return;
     }
 
-    const rec = new SR();
-    const langMap: Record<string, string> = {
-      id: "id-ID", en: "en-US", zh: "zh-CN", ja: "ja-JP", ko: "ko-KR",
-      es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", it: "it-IT",
-      nl: "nl-NL", ru: "ru-RU", ar: "ar-SA", hi: "hi-IN", th: "th-TH",
-      vi: "vi-VN", tr: "tr-TR", pl: "pl-PL", sv: "sv-SE", ms: "ms-MY",
-    };
-    rec.lang = langMap[lang] || "en-US";
-    rec.interimResults = false;
-    rec.continuous = false;
-    rec.onresult = async (e: any) => {
-      const transcript = e.results[0][0].transcript;
-      setListening(false);
-      setParsing(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("parse-voice-transaction", {
-          body: { transcript, lang },
-        });
-        if (error) throw error;
-        toast.success("✓ " + transcript);
-        onParsed(data as ParsedTx);
-      } catch (err: any) {
-        toast.error("Gagal proses suara");
-      } finally {
-        setParsing(false);
-      }
-    };
-    rec.onerror = (e: any) => {
-      setListening(false);
-      const code = e?.error || "unknown";
-      console.error("[VoiceInput] SpeechRecognition error:", code, e);
-      const msg: Record<string, string> = {
-        "not-allowed": "Akses mic ditolak. Aktifkan permission mic di browser.",
-        "service-not-allowed": "Akses mic ditolak. Aktifkan permission mic di browser.",
-        "no-speech": "Tidak ada suara terdeteksi. Coba lagi.",
-        "audio-capture": "Mic tidak ditemukan di perangkat ini.",
-        "network": "Voice butuh koneksi internet (Web Speech pakai server Google).",
-        "aborted": "Mic dibatalkan.",
-      };
-      toast.error(msg[code] || `Mic error: ${code}`);
-    };
-    rec.onend = () => setListening(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
 
-    // Trigger permission prompt via getUserMedia first (works inside iframes when allowed),
-    // then start recognition. This makes the permission dialog actually appear.
-    navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then((stream) => {
-        // Stop the mic stream immediately — SpeechRecognition opens its own.
+      // Pick best supported format
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "";
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        try {
-          rec.start();
-          recRef.current = rec;
-          setListening(true);
-        } catch (err: any) {
-          console.error("[VoiceInput] start() threw:", err);
-          toast.error("Tidak bisa memulai mic: " + (err?.message || "unknown"));
-        }
-      })
-      .catch((err) => {
-        console.error("[VoiceInput] getUserMedia denied:", err);
-        if (err?.name === "NotAllowedError") {
-          toast.error("Akses mic ditolak. Klik ikon gembok di address bar → izinkan Microphone.");
-        } else if (err?.name === "NotFoundError") {
-          toast.error("Mic tidak ditemukan di perangkat ini.");
-        } else {
-          toast.error("Mic tidak bisa diakses: " + (err?.message || err?.name || "unknown"));
-        }
-      });
+        const blob = new Blob(chunksRef.current, {
+          type: mimeType || "audio/webm",
+        });
+        await processAudio(blob);
+      };
+
+      recorder.start();
+      setListening(true);
+    } catch (err: any) {
+      if (err?.name === "NotAllowedError") {
+        toast.error("Akses mic ditolak. Klik ikon gembok di address bar → izinkan Microphone.");
+      } else if (err?.name === "NotFoundError") {
+        toast.error("Mic tidak ditemukan di perangkat ini.");
+      } else {
+        toast.error("Mic tidak bisa diakses: " + (err?.message || err?.name || "unknown"));
+      }
+    }
   };
 
   const stop = () => {
-    recRef.current?.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
     setListening(false);
+  };
+
+  const processAudio = async (blob: Blob) => {
+    setParsing(true);
+    try {
+      // Convert blob to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const { data, error } = await supabase.functions.invoke("transcribe-and-parse", {
+        body: {
+          audio: base64,
+          mimeType: blob.type || "audio/webm",
+          lang,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.transcript) throw new Error("Tidak ada suara terdeteksi");
+
+      toast.success("✓ " + data.transcript);
+      onParsed(data as ParsedTx);
+    } catch (err: any) {
+      toast.error("Gagal proses suara: " + (err?.message || "unknown"));
+    } finally {
+      setParsing(false);
+    }
   };
 
   if (floating) {
