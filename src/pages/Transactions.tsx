@@ -182,23 +182,7 @@ const Transactions = () => {
         )}
       </main>
 
-      {/* Floating mic — pojok kanan bawah, di atas BottomNav */}
-      <div className="fixed bottom-24 right-4 z-30">
-        <VoiceInput
-          floating
-          onParsed={(d) => {
-            const params = new URLSearchParams();
-            if (d.merchant) params.set("merchant", d.merchant);
-            if (d.amount) params.set("amount", String(d.amount));
-            if (d.category) params.set("category", d.category);
-            if (d.payment_method) params.set("payment", d.payment_method);
-            if (d.notes) params.set("notes", d.notes);
-            navigate(`/transactions/new?${params.toString()}`);
-          }}
-        />
-      </div>
-
-      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+           <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus transaksi ini?</AlertDialogTitle>
