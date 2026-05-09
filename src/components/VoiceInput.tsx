@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Mic, Square, Loader2, Lock } from "lucide-react";
+import { Square, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,29 @@ type ParsedTx = {
   payment_method?: string | null;
   notes?: string | null;
 };
+
+// Vintage mic SVG icon
+const VintageMicIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    {/* Mic capsule */}
+    <rect x="9" y="2" width="6" height="11" rx="3" fill="currentColor" />
+    {/* Mic body lines — vintage style */}
+    <line x1="9.5" y1="6" x2="14.5" y2="6" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
+    <line x1="9.5" y1="8" x2="14.5" y2="8" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
+    <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
+    {/* Stand arm */}
+    <path d="M6 11c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    {/* Stand pole */}
+    <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    {/* Base */}
+    <line x1="9" y1="21" x2="15" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
 export const VoiceInput = ({
   onParsed,
@@ -48,7 +71,6 @@ export const VoiceInput = ({
       streamRef.current = stream;
       chunksRef.current = [];
 
-      // Pick best supported format
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/webm")
@@ -95,7 +117,6 @@ export const VoiceInput = ({
   const processAudio = async (blob: Blob) => {
     setParsing(true);
     try {
-      // Convert blob to base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -127,7 +148,6 @@ export const VoiceInput = ({
   };
 
   if (floating) {
-    const Icon = parsing ? Loader2 : listening ? Square : Mic;
     return (
       <>
         <button
@@ -136,14 +156,38 @@ export const VoiceInput = ({
           disabled={parsing}
           aria-label={t("voice_input")}
           className={cn(
-            "relative h-14 w-14 rounded-full shadow-lg flex items-center justify-center text-primary-foreground transition-transform active:scale-95",
-            listening ? "bg-destructive animate-pulse" : "bg-primary",
-            "ring-4 ring-background"
+            "relative flex items-center justify-center transition-all active:scale-90",
+            listening && "animate-pulse"
           )}
+          style={{ background: "none", border: "none", padding: 0 }}
         >
-          <Icon className={cn("h-6 w-6", parsing && "animate-spin")} />
+          {parsing ? (
+            <Loader2
+              className="h-8 w-8 animate-spin"
+              style={{ color: "hsl(var(--primary))" }}
+            />
+          ) : listening ? (
+            <Square
+              className="h-8 w-8"
+              style={{ color: "hsl(var(--destructive))" }}
+              strokeWidth={2.5}
+            />
+          ) : (
+            <VintageMicIcon
+              className="h-9 w-9 drop-shadow-sm"
+              style={{ color: "hsl(var(--primary))" } as any}
+            />
+          )}
+
+          {/* PRO badge */}
           {!planLoading && !isPro && (
-            <span className="absolute -top-1 -right-1 bg-warning text-warning-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
+            <span
+              className="absolute -top-2 -right-2 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5"
+              style={{
+                background: "hsl(var(--warning))",
+                color: "hsl(var(--warning-foreground))",
+              }}
+            >
               <Lock className="h-2 w-2" /> PRO
             </span>
           )}
@@ -169,7 +213,7 @@ export const VoiceInput = ({
           <><Square className="h-4 w-4" /> {t("voice_listening")}</>
         ) : (
           <>
-            <Mic className="h-4 w-4" /> {t("voice_input")}
+            <VintageMicIcon className="h-4 w-4" /> {t("voice_input")}
             {!planLoading && !isPro && <Lock className="h-3 w-3 ml-0.5 text-warning" />}
           </>
         )}
