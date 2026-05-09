@@ -1,4 +1,4 @@
-import { Home, ClipboardList, BarChart3, Plus, Scissors, CreditCard } from "lucide-react";
+import { Home, ClipboardList, BarChart3, Plus, Scissors } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,49 +7,61 @@ const tabs = [
   { to: "/transactions", label: "Transaksi", icon: ClipboardList },
   { to: "/split", label: "Split", icon: Scissors },
   { to: "/reports", label: "Laporan", icon: BarChart3 },
-  { to: "/subscriptions", label: "Langganan", icon: CreditCard },
 ];
 
 export const BottomNav = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const Tab = ({ to, label, icon: Icon }: typeof tabs[number]) => {
+  const Tab = ({ to, label, icon: Icon }: (typeof tabs)[number]) => {
     const active = pathname === to || pathname.startsWith(to + "/");
     return (
       <NavLink
         to={to}
-        className={cn(
-          "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
-          active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-        )}
+        className="flex flex-col items-center justify-center gap-0.5 flex-1"
       >
-        <Icon className="h-5 w-5" />
-        <span>{label}</span>
+        <span
+          className={cn(
+            "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200",
+            active
+              ? "bg-primary text-primary-foreground"
+              : "text-white/40 hover:text-white/70"
+          )}
+        >
+          <Icon className="h-[18px] w-[18px]" />
+          <span className={cn("text-[10px] font-medium leading-none", active ? "text-primary-foreground" : "text-white/40")}>
+            {label}
+          </span>
+        </span>
       </NavLink>
     );
   };
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-card border-t border-border z-40 md:hidden">
-      <div className="relative grid grid-cols-5 items-end">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 md:hidden px-4 pb-4">
+      <nav
+        className="relative flex items-center justify-around rounded-[28px] px-2 py-2"
+        style={{ background: "#1C1A18" }}
+      >
         <Tab {...tabs[0]} />
         <Tab {...tabs[1]} />
-        {/* center spacer */}
-        <div aria-hidden className="h-14" />
+
+        {/* FAB center */}
+        <div className="flex flex-col items-center justify-center flex-1">
+          <button
+            onClick={() => navigate("/transactions/new")}
+            aria-label="Catat Transaksi"
+            className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary/90 active:scale-95 transition-all duration-150"
+            style={{ border: "2.5px solid #1C1A18" }}
+          >
+            <Plus className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+        </div>
+
         <Tab {...tabs[2]} />
         <Tab {...tabs[3]} />
-
-        {/* Perfectly centered FAB */}
-        <button
-          onClick={() => navigate("/transactions/new")}
-          aria-label="Catat Transaksi"
-          className="absolute left-1/2 -translate-x-1/2 -top-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition"
-        >
-          <Plus className="h-6 w-6" strokeWidth={2.5} />
-        </button>
-      </div>
+      </nav>
       <div className="h-[env(safe-area-inset-bottom)]" />
-    </nav>
+    </div>
   );
 };

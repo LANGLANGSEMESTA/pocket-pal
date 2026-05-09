@@ -26,28 +26,43 @@ const FEATURES = [
 
 const Upgrade = () => {
   const navigate = useNavigate();
-  const { isPro, plan, expiresAt, refresh } = usePlan();
+  const { isPro, expiresAt, refresh } = usePlan();
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [loading, setLoading] = useState(false);
 
   const handlePay = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-midtrans-transaction", {
-        body: { billing_cycle: cycle },
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { plan: "pro", billing_cycle: cycle },
       });
+
       if (error) throw error;
-      const snapToken = (data as any)?.snap_token;
-      const redirectUrl = (data as any)?.redirect_url;
-      if (!snapToken && !redirectUrl) {
-        toast.error("Server belum dikonfigurasi. Tunggu admin setup Midtrans.");
+
+      const snapToken = (data as any)?.token;
+
+      if (!snapToken) {
+        toast.error("Gagal mendapatkan token pembayaran.");
         return;
       }
-      // Buka Snap di tab baru — flow paling sederhana, tidak perlu load Snap.js
-      if (redirectUrl) {
-        window.open(redirectUrl, "_blank");
-        toast.success("Selesaikan pembayaran di tab baru. Status akan otomatis ter-update.");
-      }
+
+      (window as any).snap.pay(snapToken, {
+        onSuccess: () => {
+          toast.success("Pembayaran berhasil! Akses Pro sudah aktif.");
+          refresh();
+          navigate("/");
+        },
+        onPending: () => {
+          toast.info("Pembayaran pending. Akses Pro aktif setelah terkonfirmasi.");
+        },
+        onError: () => {
+          toast.error("Pembayaran gagal. Silakan coba lagi.");
+        },
+        onClose: () => {
+          toast.info("Pembayaran dibatalkan.");
+        },
+      });
+
     } catch (err: any) {
       toast.error(err?.message || "Gagal memulai pembayaran");
     } finally {
@@ -73,7 +88,6 @@ const Upgrade = () => {
           </Card>
         )}
 
-        {/* Cycle selector */}
         <div className="grid grid-cols-2 gap-3">
           {(Object.keys(PLANS) as Cycle[]).map((c) => {
             const pp = PLANS[c];
