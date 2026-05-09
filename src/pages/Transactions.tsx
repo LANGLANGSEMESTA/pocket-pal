@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Trash2, ChevronDown } from "lucide-react";
+import { Search, Trash2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthReady } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { VoiceInput } from "@/components/VoiceInput";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,13 +50,11 @@ const Transactions = () => {
     if (!isReady) return;
     setLoading(true);
     const currentUser = await getAuthenticatedUser();
-
     if (!currentUser) {
       setTxs([]);
       setLoading(false);
       return;
     }
-
     const { data } = await supabase
       .from("transactions")
       .select("id,merchant_name,total_amount,category,payment_method,notes,transaction_date,is_itemized,source")
@@ -66,9 +65,7 @@ const Transactions = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    load();
-  }, [isReady]);
+  useEffect(() => { load(); }, [isReady]);
 
   const filtered = useMemo(() => {
     return txs.filter((t) => {
@@ -85,11 +82,7 @@ const Transactions = () => {
     try {
       const currentUser = await requireAuthenticatedUser();
       const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", currentUser.id);
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       await load();
       toast.success("Transaksi dihapus");
     } catch {
@@ -189,13 +182,21 @@ const Transactions = () => {
         )}
       </main>
 
-      <button
-        onClick={() => navigate("/transactions/new")}
-        aria-label="Tambah transaksi"
-        className="fixed bottom-24 right-4 z-30 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 flex items-center justify-center active:scale-95"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
+      {/* Floating mic — pojok kanan bawah, di atas BottomNav */}
+      <div className="fixed bottom-24 right-4 z-30">
+        <VoiceInput
+          floating
+          onParsed={(d) => {
+            const params = new URLSearchParams();
+            if (d.merchant) params.set("merchant", d.merchant);
+            if (d.amount) params.set("amount", String(d.amount));
+            if (d.category) params.set("category", d.category);
+            if (d.payment_method) params.set("payment", d.payment_method);
+            if (d.notes) params.set("notes", d.notes);
+            navigate(`/transactions/new?${params.toString()}`);
+          }}
+        />
+      </div>
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
