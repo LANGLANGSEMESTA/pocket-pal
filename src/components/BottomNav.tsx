@@ -10,7 +10,7 @@ const tabs = [
   { to: "/reports", label: "Laporan", icon: BarChart3 },
 ];
 
-export const BottomNav = () => {z-50
+export const BottomNav = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
