@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { useAuth, useAuthReady } from "@/hooks/useAuth";
@@ -20,23 +20,23 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, PAYMENT_METHODS } from "@/lib/format";
 import { requireAuthenticatedUser } from "@/lib/auth";
-import { VoiceInput } from "@/components/VoiceInput";
 import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
 
 const NewTransaction = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { isReady } = useAuthReady();
 
-  const [merchant, setMerchant] = useState("");
+  const [merchant, setMerchant] = useState(searchParams.get("merchant") || "");
   const [date, setDate] = useState<Date>(new Date());
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(searchParams.get("amount") || "");
   const [currency, setCurrency] = useState("IDR");
-  const [category, setCategory] = useState<string>("makan");
-  const [payment, setPayment] = useState<string>("Tunai");
-  const [notes, setNotes] = useState("");
+  const [category, setCategory] = useState<string>(searchParams.get("category") || "makan");
+  const [payment, setPayment] = useState<string>(searchParams.get("payment") || "Tunai");
+  const [notes, setNotes] = useState(searchParams.get("notes") || "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -51,6 +51,13 @@ const NewTransaction = () => {
       });
   }, [user]);
 
+  // Show toast if came from voice input
+  useEffect(() => {
+    if (searchParams.get("merchant") || searchParams.get("amount")) {
+      toast.success("✓ Data dari suara berhasil diisi!");
+    }
+  }, []);
+
   const finalAmount = Number(amount) || 0;
 
   const save = async () => {
@@ -62,7 +69,7 @@ const NewTransaction = () => {
     try {
       const currentUser = await requireAuthenticatedUser();
 
-      const { data: tx, error: txErr } = await supabase
+      const { error: txErr } = await supabase
         .from("transactions")
         .insert({
           user_id: currentUser.id,
@@ -116,7 +123,7 @@ const NewTransaction = () => {
           />
         </div>
 
-        {/* Date + Amount */}
+        {/* Date + Currency */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Tanggal</Label>
@@ -227,26 +234,13 @@ const NewTransaction = () => {
         </div>
 
         {/* Actions */}
-        <div className="relative flex items-center gap-2.5 pt-2">
+        <div className="flex items-center gap-2.5 pt-2">
           <Button variant="outline" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
             Batal
           </Button>
-          <div className="w-14 shrink-0" aria-hidden />
           <Button className="flex-1 h-12" onClick={save} disabled={saving}>
             {saving ? "Menyimpan..." : "Simpan"}
           </Button>
-          <div className="absolute left-1/2 -translate-x-1/2 -top-2">
-            <VoiceInput
-              floating
-              onParsed={(d) => {
-                if (d.merchant) setMerchant(d.merchant);
-                if (d.amount) setAmount(String(d.amount));
-                if (d.category) setCategory(d.category);
-                if (d.payment_method) setPayment(d.payment_method);
-                if (d.notes) setNotes(d.notes);
-              }}
-            />
-          </div>
         </div>
       </main>
     </div>
