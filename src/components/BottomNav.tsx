@@ -41,7 +41,7 @@ export const BottomNav = () => {
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 md:hidden px-4 pb-4">
       {/* Floating mic — pojok kanan atas nav bar */}
-      <div className="absolute -top-20 right-4 z-50">
+      <div className="fixed -top-20 right-4 z-50">
         <VoiceInput
           floating
           onParsed={(d) => {
