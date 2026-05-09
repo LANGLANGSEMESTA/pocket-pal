@@ -1,6 +1,7 @@
 import { Home, ClipboardList, BarChart3, Plus, Scissors } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { VoiceInput } from "@/components/VoiceInput";
 
 const tabs = [
   { to: "/dashboard", label: "Beranda", icon: Home },
@@ -39,6 +40,22 @@ export const BottomNav = () => {
 
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 md:hidden px-4 pb-4">
+      {/* Floating mic — pojok kanan atas nav bar */}
+      <div className="absolute -top-14 right-4 z-50">
+        <VoiceInput
+          floating
+          onParsed={(d) => {
+            const params = new URLSearchParams();
+            if (d.merchant) params.set("merchant", d.merchant);
+            if (d.amount) params.set("amount", String(d.amount));
+            if (d.category) params.set("category", d.category);
+            if (d.payment_method) params.set("payment", d.payment_method);
+            if (d.notes) params.set("notes", d.notes);
+            navigate(`/transactions/new?${params.toString()}`);
+          }}
+        />
+      </div>
+
       <nav
         className="relative flex items-center justify-around rounded-[28px] px-2 py-2"
         style={{ background: "#1C1A18" }}
