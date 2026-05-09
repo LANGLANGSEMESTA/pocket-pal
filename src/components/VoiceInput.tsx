@@ -16,26 +16,30 @@ type ParsedTx = {
   notes?: string | null;
 };
 
-// Vintage mic SVG icon
-const VintageMicIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    {/* Mic capsule */}
-    <rect x="9" y="2" width="6" height="11" rx="3" fill="currentColor" />
-    {/* Mic body lines — vintage style */}
-    <line x1="9.5" y1="6" x2="14.5" y2="6" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
-    <line x1="9.5" y1="8" x2="14.5" y2="8" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
-    <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="white" strokeWidth="0.6" strokeOpacity="0.4" />
-    {/* Stand arm */}
-    <path d="M6 11c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    {/* Stand pole */}
-    <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    {/* Base */}
-    <line x1="9" y1="21" x2="15" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+const RetroMicIcon = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="13" y="2" width="14" height="20" rx="7" fill="#D85A30"/>
+    <rect x="15" y="7" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="10" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="13" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="16" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <path d="M8 20c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    <line x1="20" y1="32" x2="20" y2="38" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round"/>
+    <line x1="14" y1="38" x2="26" y2="38" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const RetroMicRecording = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="13" y="2" width="14" height="20" rx="7" fill="#E24B4A"/>
+    <rect x="15" y="7" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="10" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="13" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="16" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <path d="M8 20c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    <line x1="20" y1="32" x2="20" y2="38" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round"/>
+    <line x1="14" y1="38" x2="26" y2="38" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round"/>
+    <circle cx="20" cy="20" r="18" stroke="#E24B4A" strokeWidth="1" strokeDasharray="2 3" fill="none" opacity="0.4"/>
   </svg>
 );
 
@@ -163,20 +167,13 @@ export const VoiceInput = ({
         >
           {parsing ? (
             <Loader2
-              className="h-8 w-8 animate-spin"
-              style={{ color: "hsl(var(--primary))" }}
+              className="h-7 w-7 animate-spin"
+              style={{ color: "#D85A30" }}
             />
           ) : listening ? (
-            <Square
-              className="h-8 w-8"
-              style={{ color: "hsl(var(--destructive))" }}
-              strokeWidth={2.5}
-            />
+            <RetroMicRecording size={36} />
           ) : (
-            <VintageMicIcon
-              className="h-9 w-9 drop-shadow-sm"
-              style={{ color: "hsl(var(--primary))" } as any}
-            />
+            <RetroMicIcon size={36} />
           )}
 
           {/* PRO badge */}
@@ -213,7 +210,7 @@ export const VoiceInput = ({
           <><Square className="h-4 w-4" /> {t("voice_listening")}</>
         ) : (
           <>
-            <VintageMicIcon className="h-4 w-4" /> {t("voice_input")}
+            <RetroMicIcon size={16} /> {t("voice_input")}
             {!planLoading && !isPro && <Lock className="h-3 w-3 ml-0.5 text-warning" />}
           </>
         )}
