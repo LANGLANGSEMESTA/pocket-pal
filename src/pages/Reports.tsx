@@ -77,27 +77,7 @@ const AiReportsPanel = ({ txs, total, budget, cursor, homeCurrency }: AiReportsP
         content: m.text,
       }));
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-    "anthropic-version": "2023-06-01",
-    "anthropic-dangerous-direct-browser-access": "true",
-  },
-  body: JSON.stringify({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1000,
-    system: `You are an AI financial advisor inside a budget tracker app called Pocket Pal. 
-Answer in the same language the user uses — if they write in Indonesian, reply in Indonesian; if English, reply in English.
-Keep answers short (max 4-5 sentences), friendly, and use concrete numbers from this data:
-
-${buildContext()}
-
-Do not mention that you are Claude or made by Anthropic.`,
-    messages: history,
-  }),
-});
+    
 
       const data = await res.json();
       const reply = data.content?.[0]?.text || "Maaf, coba lagi ya!";
