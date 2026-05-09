@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, PAYMENT_METHODS } from "@/lib/format";
 import { requireAuthenticatedUser } from "@/lib/auth";
+import { VoiceInput } from "@/components/VoiceInput";
 import { toast } from "sonner";
 
 const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY", "KRW"];
@@ -243,6 +244,20 @@ const NewTransaction = () => {
           </Button>
         </div>
       </main>
+
+      {/* Floating mic — posisi sama persis seperti halaman lain */}
+      <div className="fixed bottom-8 right-4 z-50">
+        <VoiceInput
+          floating
+          onParsed={(d) => {
+            if (d.merchant) setMerchant(d.merchant);
+            if (d.amount) setAmount(String(d.amount));
+            if (d.category) setCategory(d.category);
+            if (d.payment_method) setPayment(d.payment_method);
+            if (d.notes) setNotes(d.notes);
+          }}
+        />
+      </div>
     </div>
   );
 };
