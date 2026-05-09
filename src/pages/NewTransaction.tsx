@@ -246,7 +246,7 @@ const NewTransaction = () => {
       </main>
 
       {/* Floating mic — posisi sama persis seperti halaman lain */}
-      <div className="fixed bottom-24 right-4 z-50">
+      <div className="fixed bottom-26 right-4 z-50">
         <VoiceInput
           floating
           onParsed={(d) => {
