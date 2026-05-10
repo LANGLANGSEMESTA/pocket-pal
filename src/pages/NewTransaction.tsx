@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { useAuth, useAuthReady } from "@/hooks/useAuth";
@@ -27,17 +27,16 @@ const CURRENCIES = ["IDR", "USD", "SGD", "MYR", "AUD", "EUR", "GBP", "JPY", "CNY
 
 const NewTransaction = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { isReady } = useAuthReady();
 
-  const [merchant, setMerchant] = useState(searchParams.get("merchant") || "");
+  const [merchant, setMerchant] = useState("");
   const [date, setDate] = useState<Date>(new Date());
-  const [amount, setAmount] = useState(searchParams.get("amount") || "");
+  const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("IDR");
-  const [category, setCategory] = useState<string>(searchParams.get("category") || "makan");
-  const [payment, setPayment] = useState<string>(searchParams.get("payment") || "Tunai");
-  const [notes, setNotes] = useState(searchParams.get("notes") || "");
+  const [category, setCategory] = useState<string>("makan");
+  const [payment, setPayment] = useState<string>("Tunai");
+  const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -52,13 +51,6 @@ const NewTransaction = () => {
       });
   }, [user]);
 
-  // Show toast if came from voice input
-  useEffect(() => {
-    if (searchParams.get("merchant") || searchParams.get("amount")) {
-      toast.success("✓ Data dari suara berhasil diisi!");
-    }
-  }, []);
-
   const finalAmount = Number(amount) || 0;
 
   const save = async () => {
@@ -70,7 +62,7 @@ const NewTransaction = () => {
     try {
       const currentUser = await requireAuthenticatedUser();
 
-      const { error: txErr } = await supabase
+      const { data: tx, error: txErr } = await supabase
         .from("transactions")
         .insert({
           user_id: currentUser.id,
@@ -235,29 +227,52 @@ const NewTransaction = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2.5 pt-2">
+        <div className="relative flex items-center gap-2.5 pt-2">
           <Button variant="outline" className="flex-1 h-12" onClick={() => navigate(-1)} disabled={saving}>
             Batal
           </Button>
+          <div className="w-14 shrink-0" aria-hidden />
           <Button className="flex-1 h-12" onClick={save} disabled={saving}>
             {saving ? "Menyimpan..." : "Simpan"}
           </Button>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-2">
+            <VoiceInput
+              floating
+              onParsed={(d) => {
+                // Merchant name — exact as spoken
+                if (d.merchant) setMerchant(d.merchant);
+
+                // Amount
+                if (d.amount) setAmount(String(d.amount));
+
+                // Category
+                if (d.category) setCategory(d.category);
+
+                // Payment method
+                if (d.payment_method) setPayment(d.payment_method);
+
+                // Notes
+                if (d.notes) setNotes(d.notes);
+
+                // Currency — from AI detection
+                if ((d as any).currency) setCurrency((d as any).currency);
+
+                // Date — backdated support
+                // If AI detected a date (e.g. "kemarin", "2 hari lalu"), use it
+                // Otherwise keep today
+                if ((d as any).date) {
+                  const parsedDate = new Date((d as any).date);
+                  // Sanity check — must be valid and not in the future
+                  if (!isNaN(parsedDate.getTime()) && parsedDate <= new Date()) {
+                    setDate(parsedDate);
+                    toast.info(`Tanggal diset ke ${format(parsedDate, "d MMM yyyy")}`);
+                  }
+                }
+              }}
+            />
+          </div>
         </div>
       </main>
-
-      {/* Floating mic — posisi sama persis seperti halaman lain */}
-      <div className="fixed bottom-24 right-4 z-50">
-        <VoiceInput
-          floating
-          onParsed={(d) => {
-            if (d.merchant) setMerchant(d.merchant);
-            if (d.amount) setAmount(String(d.amount));
-            if (d.category) setCategory(d.category);
-            if (d.payment_method) setPayment(d.payment_method);
-            if (d.notes) setNotes(d.notes);
-          }}
-        />
-      </div>
     </div>
   );
 };
