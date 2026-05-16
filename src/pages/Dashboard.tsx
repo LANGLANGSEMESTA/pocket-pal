@@ -313,31 +313,32 @@ const Dashboard = () => {
         </div>
 
         {/* ===== MOBILE: QUICK ACTIONS ===== */}
-        <div className="md:hidden">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
-            {t("quick_actions")}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Cek Stok */}
-            <Link to="/stock">
-              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex items-center gap-3 overflow-hidden">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-success-soft text-success shrink-0">
-                  <Package className="h-5 w-5" />
-                </div>
-                <p className="text-xxs font-semibold leading-tight truncate min-w-0">{t("check_stock")}</p>
-              </Card>
-            </Link>
-            {/* Langganan */}
-            <Link to="/subscriptions">
-              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex items-center gap-3 overflow-hidden">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-primary-soft text-primary shrink-0">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <p className="text-xxs font-semibold leading-tight truncate min-w-0">{t("subscriptions")}</p>
-              </Card>
-            </Link>
-          </div>
+        {/* ===== MOBILE: QUICK ACTIONS ===== */}
+<div className="md:hidden">
+  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
+    {t("quick_actions")}
+  </p>
+  <div className="grid grid-cols-2 gap-3">
+    {/* Cek Stok */}
+    <Link to="/stock">
+      <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex flex-col items-center justify-center gap-2 text-center">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
+          <Package className="h-5 w-5" />
         </div>
+        <p className="text-xs font-semibold leading-tight">{t("check_stock")}</p>
+      </Card>
+    </Link>
+    {/* Langganan */}
+    <Link to="/subscriptions">
+      <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex flex-col items-center justify-center gap-2 text-center">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary-soft text-primary">
+          <CreditCard className="h-5 w-5" />
+        </div>
+        <p className="text-xs font-semibold leading-tight">{t("subscriptions")}</p>
+      </Card>
+    </Link>
+  </div>
+</div>
 
         {/* ===== MOBILE: RUNNING LOW ===== */}
         {runningLow.length > 0 && (
