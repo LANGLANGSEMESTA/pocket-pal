@@ -324,7 +324,7 @@ const Dashboard = () => {
                 <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-success-soft text-success shrink-0">
                   <Package className="h-5 w-5" />
                 </div>
-                <p className="text-xs font-semibold leading-tight truncate min-w-0">{t("check_stock")}</p>
+                <p className="text-xxs font-semibold leading-tight truncate min-w-0">{t("check_stock")}</p>
               </Card>
             </Link>
             {/* Langganan */}
@@ -333,7 +333,7 @@ const Dashboard = () => {
                 <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-primary-soft text-primary shrink-0">
                   <CreditCard className="h-5 w-5" />
                 </div>
-                <p className="text-xs font-semibold leading-tight truncate min-w-0">{t("subscriptions")}</p>
+                <p className="text-xxs font-semibold leading-tight truncate min-w-0">{t("subscriptions")}</p>
               </Card>
             </Link>
           </div>
