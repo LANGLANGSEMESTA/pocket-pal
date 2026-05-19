@@ -3,7 +3,7 @@ import { useAuthReady } from "@/hooks/useAuth";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Package, ChevronRight, Bell, CreditCard, DollarSign, Monitor, Heart } from "lucide-react";
+import { Package, ChevronRight, Bell, CreditCard, DollarSign, Monitor, Heart, Scissors } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatRupiah, getCategory } from "@/lib/format";
@@ -25,7 +25,6 @@ interface Budget {
   currency: string | null;
 }
 
-// Rolling counter hook
 function useRollingCounter(target: number, duration = 800) {
   const [display, setDisplay] = useState(target);
   const prevRef = useRef(target);
@@ -69,7 +68,6 @@ const Dashboard = () => {
   const today = useMemo(() => new Date(), []);
   const dateLabel = today.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
-  // Rolling counter for sisa budget
   const limit = budget?.total_limit || 0;
   const sisa = Math.max(0, limit - spent);
   const displaySisa = useRollingCounter(sisa);
@@ -132,10 +130,8 @@ const Dashboard = () => {
 
   const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
   const tone = pct < 50 ? "ok" : pct <= 80 ? "warn" : "danger";
-  const toneText = tone === "ok" ? "text-success" : tone === "warn" ? "text-warning" : "text-danger";
   const message = tone === "ok" ? t("ok_msg") : tone === "warn" ? t("warn_msg") : t("danger_msg");
 
-  // greeting by time
   const hour = today.getHours();
   const greeting = hour < 11 ? "Selamat pagi" : hour < 15 ? "Selamat siang" : hour < 18 ? "Selamat sore" : "Selamat malam";
 
@@ -284,9 +280,7 @@ const Dashboard = () => {
           className="md:hidden rounded-[20px] p-5 relative overflow-hidden"
           style={{ background: "#1C1A18" }}
         >
-          {/* subtle glow */}
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(193,68,14,0.25) 0%, transparent 70%)" }} />
-
           <div className="relative">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-white/50 uppercase tracking-wider">Budget Bulan Ini</p>
@@ -296,32 +290,22 @@ const Dashboard = () => {
                 </span>
               )}
             </div>
-
-            {/* Rolling counter — sisa budget */}
             <p className="text-[28px] font-bold text-white leading-tight tracking-tight">
-              {limit > 0
-                ? formatRupiah(displaySisa, budget?.currency || homeCurrency)
-                : formatRupiah(0, homeCurrency)}
+              {limit > 0 ? formatRupiah(displaySisa, budget?.currency || homeCurrency) : formatRupiah(0, homeCurrency)}
             </p>
             <p className="text-[12px] text-white/40 mt-0.5">
               {limit > 0
                 ? `Terpakai ${formatRupiah(displaySpent, budget?.currency || homeCurrency)} dari ${formatRupiah(limit, budget?.currency || homeCurrency)}`
                 : "Belum ada budget — atur di pengaturan"}
             </p>
-
-            {/* Progress bar */}
             {limit > 0 && (
               <div className="mt-4 h-1.5 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
                 <div
                   className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${pct}%`,
-                    background: tone === "ok" ? "#34d399" : tone === "warn" ? "#fbbf24" : "#f87171",
-                  }}
+                  style={{ width: `${pct}%`, background: tone === "ok" ? "#34d399" : tone === "warn" ? "#fbbf24" : "#f87171" }}
                 />
               </div>
             )}
-
             <p className={cn("text-xs mt-2 font-medium", tone === "ok" ? "text-emerald-400" : tone === "warn" ? "text-amber-400" : "text-red-400")}>
               {message}
             </p>
@@ -329,29 +313,32 @@ const Dashboard = () => {
         </div>
 
         {/* ===== MOBILE: QUICK ACTIONS ===== */}
-        <div className="md:hidden">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
-            {t("quick_actions")}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/stock">
-              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-success-soft text-success shrink-0">
-                  <Package className="h-5 w-5" />
-                </div>
-                <p className="text-sm font-semibold leading-tight">{t("check_stock")}</p>
-              </Card>
-            </Link>
-            <Link to="/subscriptions">
-              <Card className="p-4 hover:shadow-md transition active:scale-[0.98] h-full flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-primary-soft text-primary shrink-0">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <p className="text-sm font-semibold leading-tight">{t("subscriptions")}</p>
-              </Card>
-            </Link>
-          </div>
+        {/* ===== MOBILE: QUICK ACTIONS ===== */}
+<div className="md:hidden">
+  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 px-1">
+    {t("quick_actions")}
+  </p>
+  <div className="grid grid-cols-2 gap-3">
+    {/* Cek Stok */}
+    <Link to="/stock">
+      <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex flex-col items-center justify-center gap-2 text-center">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-success-soft text-success">
+          <Package className="h-5 w-5" />
         </div>
+        <p className="text-xs font-semibold leading-tight">{t("check_stock")}</p>
+      </Card>
+    </Link>
+    {/* Langganan */}
+    <Link to="/subscriptions">
+      <Card className="p-4 hover:shadow-md transition active:scale-[0.98] flex flex-col items-center justify-center gap-2 text-center">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary-soft text-primary">
+          <CreditCard className="h-5 w-5" />
+        </div>
+        <p className="text-xs font-semibold leading-tight">{t("subscriptions")}</p>
+      </Card>
+    </Link>
+  </div>
+</div>
 
         {/* ===== MOBILE: RUNNING LOW ===== */}
         {runningLow.length > 0 && (
@@ -384,7 +371,6 @@ const Dashboard = () => {
               Lihat semua <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
-
           {recent.length === 0 ? (
             <Card className="p-6 text-center border border-dashed">
               <p className="text-2xl mb-2">🎉</p>
@@ -448,7 +434,6 @@ const Dashboard = () => {
   );
 };
 
-// small inline icon component to avoid extra import
 const BarChart3Icon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="20" x2="18" y2="10" />

@@ -77,10 +77,27 @@ const AiReportsPanel = ({ txs, total, budget, cursor, homeCurrency }: AiReportsP
         content: m.text,
       }));
 
-    
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          max_tokens: 1000,
+          messages: [
+            {
+              role: "system",
+              content: `You are an AI financial advisor in a budget tracker app called Pocket Pal. Answer in the same language the user uses — if Indonesian, reply Indonesian; if English, reply English. Keep answers short (max 4-5 sentences), friendly, and use concrete numbers from this data:\n\n${buildContext()}\n\nDo not mention DeepSeek or any AI company.`,
+            },
+            ...history,
+          ],
+        }),
+      });
 
       const data = await res.json();
-      const reply = data.content?.[0]?.text || "Maaf, coba lagi ya!";
+      const reply = data.choices?.[0]?.message?.content || "Maaf, coba lagi ya!";
       setMessages((prev) => [...prev, { role: "ai", text: reply }]);
     } catch {
       setMessages((prev) => [...prev, { role: "ai", text: "Koneksi bermasalah. Coba lagi ya!" }]);

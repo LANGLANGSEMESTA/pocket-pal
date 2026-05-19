@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from "react";
-import { Mic, Loader2, Lock } from "lucide-react";
+import { useRef, useState } from "react";
+import { Square, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,45 +14,34 @@ type ParsedTx = {
   category?: string | null;
   payment_method?: string | null;
   notes?: string | null;
-  date?: string | null;
-  currency?: string | null;
 };
 
-// Animated waveform bars shown while recording
-const Waveform = () => (
-  <div className="flex items-center gap-[3px]">
-    {[0, 1, 2, 3, 4].map((i) => (
-      <span
-        key={i}
-        className="block w-[3px] rounded-full bg-white"
-        style={{
-          height: "18px",
-          animation: `waveBar 0.8s ease-in-out ${i * 0.1}s infinite alternate`,
-        }}
-      />
-    ))}
-    <style>{`
-      @keyframes waveBar {
-        from { transform: scaleY(0.2); opacity: 0.5; }
-        to   { transform: scaleY(1);   opacity: 1; }
-      }
-    `}</style>
-  </div>
+const RetroMicIcon = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="13" y="2" width="14" height="20" rx="7" fill="#D85A30"/>
+    <rect x="15" y="7" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="10" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="13" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="16" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <path d="M8 20c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    <line x1="20" y1="32" x2="20" y2="38" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round"/>
+    <line x1="14" y1="38" x2="26" y2="38" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round"/>
+  </svg>
 );
 
-// Recording duration counter
-const RecordTimer = ({ active }: { active: boolean }) => {
-  const [secs, setSecs] = useState(0);
-  useEffect(() => {
-    if (!active) { setSecs(0); return; }
-    const id = setInterval(() => setSecs((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [active]);
-  if (!active) return null;
-  const m = Math.floor(secs / 60).toString().padStart(2, "0");
-  const s = (secs % 60).toString().padStart(2, "0");
-  return <span className="text-[10px] font-mono text-white/80 absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">{m}:{s}</span>;
-};
+const RetroMicRecording = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="13" y="2" width="14" height="20" rx="7" fill="#E24B4A"/>
+    <rect x="15" y="7" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="10" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="13" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <rect x="15" y="16" width="10" height="1.2" rx="0.6" fill="white" opacity="0.5"/>
+    <path d="M8 20c0 6.627 5.373 12 12 12s12-5.373 12-12" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    <line x1="20" y1="32" x2="20" y2="38" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round"/>
+    <line x1="14" y1="38" x2="26" y2="38" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round"/>
+    <circle cx="20" cy="20" r="18" stroke="#E24B4A" strokeWidth="1" strokeDasharray="2 3" fill="none" opacity="0.4"/>
+  </svg>
+);
 
 export const VoiceInput = ({
   onParsed,
@@ -75,10 +64,12 @@ export const VoiceInput = ({
       setUpsellOpen(true);
       return;
     }
+
     if (!navigator.mediaDevices?.getUserMedia) {
       toast.error("Browser tidak mengizinkan akses mic di sini.");
       return;
     }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -101,7 +92,9 @@ export const VoiceInput = ({
 
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
+        const blob = new Blob(chunksRef.current, {
+          type: mimeType || "audio/webm",
+        });
         await processAudio(blob);
       };
 
@@ -109,7 +102,7 @@ export const VoiceInput = ({
       setListening(true);
     } catch (err: any) {
       if (err?.name === "NotAllowedError") {
-        toast.error("Akses mic ditolak. Izinkan Microphone di browser kamu.");
+        toast.error("Akses mic ditolak. Klik ikon gembok di address bar → izinkan Microphone.");
       } else if (err?.name === "NotFoundError") {
         toast.error("Mic tidak ditemukan di perangkat ini.");
       } else {
@@ -130,13 +123,20 @@ export const VoiceInput = ({
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
 
       const { data, error } = await supabase.functions.invoke("transcribe-and-parse", {
-        body: { audio: base64, mimeType: blob.type || "audio/webm", lang },
+        body: {
+          audio: base64,
+          mimeType: blob.type || "audio/webm",
+          lang,
+        },
       });
 
       if (error) throw error;
@@ -151,69 +151,49 @@ export const VoiceInput = ({
     }
   };
 
-  // ── FLOATING MODE (WA-style) ──
   if (floating) {
     return (
       <>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={listening ? stop : start}
-            disabled={parsing}
-            aria-label={t("voice_input")}
-            className={cn(
-              "relative h-14 w-14 rounded-full shadow-lg flex items-center justify-center",
-              "transition-all duration-200 active:scale-95 ring-4 ring-background",
-              // States
-              parsing
-                ? "bg-muted cursor-wait"
-                : listening
-                ? "bg-red-500"
-                : "bg-primary hover:brightness-110",
-            )}
-          >
-            {/* Pulse rings when recording */}
-            {listening && !parsing && (
-              <>
-                <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-30" />
-                <span className="absolute inset-[-6px] rounded-full border-2 border-red-400 opacity-40 animate-pulse" />
-              </>
-            )}
+        <button
+          type="button"
+          onClick={listening ? stop : start}
+          disabled={parsing}
+          aria-label={t("voice_input")}
+          className={cn(
+            "relative flex items-center justify-center transition-all active:scale-90",
+            listening && "animate-pulse"
+          )}
+          style={{ background: "none", border: "none", padding: 0 }}
+        >
+          {parsing ? (
+            <Loader2
+              className="h-7 w-7 animate-spin"
+              style={{ color: "#D85A30" }}
+            />
+          ) : listening ? (
+            <RetroMicRecording size={36} />
+          ) : (
+            <RetroMicIcon size={36} />
+          )}
 
-            {/* Icon content */}
-            {parsing ? (
-              <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
-            ) : listening ? (
-              <Waveform />
-            ) : (
-              <Mic className="h-6 w-6 text-primary-foreground" />
-            )}
-
-            {/* PRO badge */}
-            {!planLoading && !isPro && !listening && !parsing && (
-              <span className="absolute -top-1 -right-1 bg-warning text-warning-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
-                <Lock className="h-2 w-2" /> PRO
-              </span>
-            )}
-          </button>
-
-          {/* Timer below button */}
-          <RecordTimer active={listening} />
-
-          {/* Tap to stop hint */}
-          {listening && (
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground whitespace-nowrap">
-              Tap untuk stop
+          {/* PRO badge */}
+          {!planLoading && !isPro && (
+            <span
+              className="absolute -top-2 -right-2 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5"
+              style={{
+                background: "hsl(var(--warning))",
+                color: "hsl(var(--warning-foreground))",
+              }}
+            >
+              <Lock className="h-2 w-2" /> PRO
             </span>
           )}
-        </div>
-
+        </button>
         <ProUpsellDialog open={upsellOpen} onOpenChange={setUpsellOpen} feature="Voice input" />
       </>
     );
   }
 
-  // ── INLINE BUTTON MODE ──
   return (
     <>
       <Button
@@ -222,21 +202,15 @@ export const VoiceInput = ({
         size="sm"
         onClick={listening ? stop : start}
         disabled={parsing}
-        className={cn(
-          "gap-1.5 relative transition-all",
-          listening && "ring-2 ring-red-400 ring-offset-1"
-        )}
+        className="gap-1.5 relative"
       >
         {parsing ? (
           <><Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}</>
         ) : listening ? (
-          <>
-            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-            {t("voice_listening")}
-          </>
+          <><Square className="h-4 w-4" /> {t("voice_listening")}</>
         ) : (
           <>
-            <Mic className="h-4 w-4" /> {t("voice_input")}
+            <RetroMicIcon size={16} /> {t("voice_input")}
             {!planLoading && !isPro && <Lock className="h-3 w-3 ml-0.5 text-warning" />}
           </>
         )}

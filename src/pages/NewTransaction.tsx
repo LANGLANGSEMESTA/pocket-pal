@@ -116,7 +116,7 @@ const NewTransaction = () => {
           />
         </div>
 
-        {/* Date + Amount */}
+        {/* Date + Currency */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Tanggal</Label>
@@ -239,11 +239,35 @@ const NewTransaction = () => {
             <VoiceInput
               floating
               onParsed={(d) => {
+                // Merchant name — exact as spoken
                 if (d.merchant) setMerchant(d.merchant);
+
+                // Amount
                 if (d.amount) setAmount(String(d.amount));
+
+                // Category
                 if (d.category) setCategory(d.category);
+
+                // Payment method
                 if (d.payment_method) setPayment(d.payment_method);
+
+                // Notes
                 if (d.notes) setNotes(d.notes);
+
+                // Currency — from AI detection
+                if ((d as any).currency) setCurrency((d as any).currency);
+
+                // Date — backdated support
+                // If AI detected a date (e.g. "kemarin", "2 hari lalu"), use it
+                // Otherwise keep today
+                if ((d as any).date) {
+                  const parsedDate = new Date((d as any).date);
+                  // Sanity check — must be valid and not in the future
+                  if (!isNaN(parsedDate.getTime()) && parsedDate <= new Date()) {
+                    setDate(parsedDate);
+                    toast.info(`Tanggal diset ke ${format(parsedDate, "d MMM yyyy")}`);
+                  }
+                }
               }}
             />
           </div>
